@@ -1,0 +1,367 @@
+{% extends "erp/admin/base.html" %}
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+  <main class="content-wrapper">
+    <div class="mdc-layout-grid">
+
+      <!-- ================= HEADER ================= -->
+      <div class="d-flex justify-content-between mb-3">
+        <h4>Service Detail</h4>
+      </div>
+
+      <!-- ================= BLOCK ALERTS ================= -->
+      {% if machine_blocked %}
+      <div class="alert alert-danger">
+        <strong>Machine Blocked</strong> — Spare parts not returned for more than 7 days.
+      </div>
+      {% endif %}
+
+      {% if overdue_spares_48 %}
+      <div class="alert alert-warning">
+        ⏱ Spare parts pending or not returned for more than <strong>48 hours</strong>.
+      </div>
+      {% endif %}
+
+      <div class="row">
+
+        <!-- ================= PRODUCT DETAILS ================= -->
+        <div class="col-md-8 mb-3">
+          <div class="mdc-card p-3">
+            <h5>Product Details</h5>
+            <hr>
+
+            <p><strong>Product:</strong> {{ service.product_model }} {{ service.product_name }}</p>
+            <p><strong>Serial No:</strong> {{ service.product_serial }}</p>
+            <p><strong>Issue:</strong> {{ service.issue_desc }}</p>
+
+            <!-- <hr> -->
+
+            <!-- ================= STATUS ACTIONS (TIMELINE) ================= -->
+            {% if can_edit_status and service.status != 'closed' %}
+
+            {% if service.status == 'raised' %}
+            <!-- Assign Engineer Form -->
+            <a href="{% url 'assign_service_engineer' service.id %}"
+              class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded mt-2">assign engineer</a>
+
+            {% else %}
+            <!-- Status Change Form -->
+            <form method="POST" action="{% url 'change_service_status' service.id %}">
+              {% csrf_token %}
+              <select name="status" class="form-select" onchange="this.form.submit()">
+                {% for key,label in service.STATUS_CHOICES %}
+                <option value="{{ key }}" {% if key == service.status %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <!-- <button class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded mt-2">Change Status</button> -->
+            </form>
+            {% endif %}
+
+            {% else %}
+            <span class="badge bg-info">{{ service.get_status_display }}</span>
+            {% endif %}
+
+
+          </div>
+        </div>
+
+        <!-- ================= USER DETAILS ================= -->
+        <div class="col-md-4 mb-3">
+          <div class="mdc-card p-3">
+            <h5>Customer / Engineer</h5>
+            <hr>
+
+            <p><strong>Raised By:</strong> {{ service.raised_by.get_full_name }}</p>
+            <p><strong>Email:</strong> {{ service.raised_by.email }}</p>
+
+            <!-- Customer Details -->
+            {% if customer %}
+            <h4>Customer Details</h4>
+            <p><b>Name:</b> {{ customer.name }}</p>
+            <p><b>Company:</b> {{ customer.company }}</p>
+            <p><b>Phone:</b> {{ customer.phone }}</p>
+            <p><b>Email:</b> {{ customer.email }}</p>
+            <p><b>GST:</b> {{ customer.gstin }}</p>
+            <p><b>Address:</b> {{ customer.shipping_address }}</p>
+            {% endif %}
+
+
+            {% if service.assigned_engineer %}
+            <hr>
+            <p><strong>Engineer:</strong> {{ service.assigned_engineer.get_full_name }}</p>
+            <p><strong>Phone:</strong> {{ service.assigned_engineer.phone }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ================= SPARE PARTS ================= -->
+
+        <div class="col-12 mb-3">
+          <div class="mdc-card p-3">
+            <h5>Spare Parts</h5>
+
+            {% if not is_service_final %}
+            <form method="POST" action="{% url 'add_spare_parts' service.id %}" class="row g-2 mb-3">
+              {% csrf_token %}
+              <div class="col-md-5">
+                <input name="part_name" class="form-control" placeholder="Part Name">
+              </div>
+              <div class="col-md-3">
+                <input name="part_number" class="form-control" placeholder="Part No">
+              </div>
+              <div class="col-md-2">
+                <input name="quantity" type="number" class="form-control" value="1">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-success w-100">Add</button>
+              </div>
+            </form>
+            {% endif %}
+
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Part</th>
+                    <th>Number</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Assigned</th>
+                    {% if service.status == 'completed' or service.status == 'closed' %}
+                    <th class="space">Action</th>
+                    {% endif %}
+                    {% if service.status != 'completed' and service.status != 'closed' %}
+                    <!-- {% if is_admin%} -->
+                    <th>Remove</th>
+                    <!-- {% endif %} -->
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for spare in spares %}
+                  <tr 
+                  {% if spare.is_overdue_7days %} class="table-danger" {% elif spare.is_overdue_48hr %} class="table-warning" {% endif %}>
+                    <td>{{ spare.part_name }}</td>
+                    <td>{{ spare.part_number }}</td>
+                    <td>{{ spare.quantity }}</td>
+                    <td>
+                      <span class="badge
+                          {% if spare.status == 'returned' %}bg-success
+                          {% elif spare.status == 'not_returned' %}bg-danger
+                          {% else %}bg-warning{% endif %}">
+                        {{ spare.get_status_display }}
+                      </span>
+                    </td>
+                    <td>{{ spare.assigned_at }}</td>
+                    {% if service.status == 'completed' or service.status == 'closed' %}
+                    <td class="space">
+                      {% if is_admin and spare.status != 'returned' %}
+                      {% if is_admin or is_engineer %}
+                      <form method="POST" action="{% url 'update_spare_part_status' spare.id %}">
+                        {% csrf_token %}
+
+                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                          {% for key,label in spare.PART_STATUS %}
+                          <option value="{{ key }}" {% if key == spare.status %}selected{% endif %}>
+                            {{ label }}
+                          </option>
+                          {% endfor %}
+                        </select>
+
+                      </form>
+                      {% endif %}
+
+                      {% else %}
+                      —
+                      {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if service.status != 'completed' and service.status != 'closed' %}
+                    {% if is_admin %}
+                    <td>
+
+                      <form method="POST" action="{% url 'remove_spare_part' service.id spare.id %}"
+                        onsubmit="return confirm('Remove this spare part?');">
+                        {% csrf_token %}
+                        <button class="btn bg-danger text-white btn-sm" type="submit">
+                          <i class="fa fa-trash-o"></i>
+                        </button>
+                      </form>
+                    </td>
+                    {% endif %}
+                    {% endif %}
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">No spare parts added</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= STATUS LOGS ================= -->
+        <div class="col-12 mb-3">
+          <div class="mdc-card p-3">
+            <div class="header-title mb-3">
+              <h5>Status Logs</h5>
+              <p class="mdc-typography mdc-theme--dark">A timeline of all service status changes</p>
+            </div>
+
+            <div class="timeline-wrapper mb-3 d-flex justify-content-between position-relative">
+
+
+              <!-- RAISED -->
+              <div class="timeline-item d-flex flex-column align-items-center active">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-bell"></i>
+                </div>
+                <div class="timeline-title">Raised</div>
+                <div class="timeline-date">{{ service.created_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.raised_by.get_full_name|title }} <small
+                    class="text-muted">(User)</small></div>
+              </div>
+
+              <!-- ASSIGNED -->
+              <div
+                class="timeline-item d-flex flex-column align-items-center {% if service.assigned_engineer %}active{% endif %}">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-user"></i>
+                </div>
+                <div class="timeline-title">Assigned</div>
+                {% if service.assigned_engineer %}
+                <div class="timeline-date">{{ service.updated_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.assigned_engineer.get_full_name|title }} <small
+                    class="text-muted">(Engineer)</small></div>
+                {% else %}
+                <div class="timeline-user text-muted">Not assigned</div>
+                {% endif %}
+              </div>
+
+              <!-- WAITING FOR SPARE -->
+              <div
+                class="timeline-item d-flex flex-column align-items-center {% if has_assigned_spares or is_service_final %}active{% endif %}">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-truck"></i>
+                </div>
+                <div class="timeline-title">Waiting for Spare</div>
+                {% if has_assigned_spares or is_service_final %}
+                <div class="timeline-date">{{ service.updated_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.updated_by.get_full_name|title }} 
+                  <small class="text-muted">
+                   {% if service.updated_by.role != 'employee' %} 
+                   ({{service.updated_by.role|title}})
+                   {% elif service.updated_by.sub_employee_role == 'service' %}
+                   (Engineer)
+                   {% else %}
+                   ({{service.updated_by.sub_employee_role|title}})
+                   {% endif %}
+                  </small>
+                </div>
+                {% endif %}
+              </div>
+              <!-- IN-PROGRESS -->
+              <div
+                class="timeline-item d-flex flex-column align-items-center {% if has_assigned_spares or is_service_final %}active{% endif %}">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-spinner"></i>
+                </div>
+                <div class="timeline-title">In Progress</div>
+                {% if has_assigned_spares or is_service_final %}
+                <div class="timeline-date">{{ service.updated_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.updated_by.get_full_name|title }} 
+                  <small class="text-muted">
+                   {% if service.updated_by.role != 'employee' %} 
+                   ({{service.updated_by.role|title}})
+                   {% elif service.updated_by.sub_employee_role == 'service' %}
+                   (Engineer)
+                   {% else %}
+                   ({{service.updated_by.sub_employee_role|title}})
+                   {% endif %}
+                  </small>
+                </div>
+                  {% endif %}
+              </div>
+              
+              <!-- COMPLETED -->
+              <div
+                class="timeline-item d-flex flex-column align-items-center {% if service.status in 'completed closed' %}active{% endif %}">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-flag-checkered"></i>
+                </div>
+                <div class="timeline-title">Completed</div>
+                {% if service.status in 'completed closed' %}
+                <div class="timeline-date">{{ service.updated_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.updated_by.get_full_name|title }} 
+                  <small class="text-muted">
+                   {% if service.updated_by.role != 'employee' %} 
+                   ({{service.updated_by.role|title}})
+                   {% elif service.updated_by.sub_employee_role == 'service' %}
+                   (Engineer)
+                   {% else %}
+                   ({{service.updated_by.sub_employee_role|title}})
+                   {% endif %}
+                  </small>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- CLOSED -->
+              <div
+                class="timeline-item d-flex flex-column align-items-center {% if service.status == 'closed' %}active{% endif %} ">
+                <div class="timeline-icon rounded-circle d-flex justify-content-center align-items-center mb-2">
+                  <i class="fa fa-lock"></i>
+                </div>
+                <div class="timeline-title">Closed</div>
+                {% if service.status == 'closed' %}
+                <div class="timeline-date">{{ service.updated_at|date:"d M Y" }}</div>
+                <div class="timeline-user">{{ service.updated_by.get_full_name|title }} 
+                  <small class="text-muted">
+                   {% if service.updated_by.role != 'employee' %} 
+                   ({{service.updated_by.role|title}})
+                   {% elif service.updated_by.sub_employee_role == 'service' %}
+                   (Engineer)
+                   {% else %}
+                   ({{service.updated_by.sub_employee_role|title}})
+                   {% endif %}
+                  </small>
+                </div>
+                {% endif %}
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= RESOLUTION ================= -->
+        <div class="col-12 mb-3">
+          <div class="mdc-card p-3">
+            <h5>Resolution</h5>
+        
+            
+            {% if service.status == 'completed' and is_engineer %}
+            <form method="POST" action="{% url 'close_service' service.id %}">
+              {% csrf_token %}
+              <textarea name="resolution" class="form-control" required></textarea>
+              <button class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded mt-2">Close Service</button>
+            </form>
+            {% elif service.closure %}
+            <p>{{ service.closure.resolution_summary }}</p>
+            <small>Closed by {{ service.closure.closed_by }}</small>
+        
+            {% else %}
+            <p class="text-muted">Available after completion</p>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+</div>
+
+{% endblock %}

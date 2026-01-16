@@ -1,0 +1,62 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+
+      <!-- main-content-start -->
+      <div class="page-wrapper mdc-toolbar-fixed-adjust">
+        <!-- content-block -->
+        <main class="content-wrapper">
+            <div class="mdc-layout-grid">
+                <div class="header-title mb-3">
+                    <h4>Add User</h4>
+                </div>
+                <div class="mdc-card">
+                    <form action="{% url 'create_user' %}"method="POST">
+                        {% csrf_token %}
+                      <div class="row">
+                        <div class="mb-3 col-md-6">
+                         <label for="first-name" class="form-label">First Name*</label>
+                          {{form.first_name}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                          <label for="last-name" class="form-label">Last Name</label>
+                          {{form.last_name}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label for="email-address" class="form-label">Email*</label>
+                            {{form.email}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                            <label for="phone-number" class="form-label">Phone Number*</label>
+                            {{form.phone}}
+                        </div>
+                        <div class="mb-3">
+                            <label for="company" class="form-label">Company</label>
+                            {{form.company}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                          <label for="role" class="form-label">Role</label>
+                          {{form.role}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                          <label for="sub-employee-role" class="form-label">Sub Employee Role</label>
+                          {{form.sub_employee_role}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                          <label for="password" class="form-label">Password</label>
+                          {{form.password1}}
+                        </div>
+                        <div class="mb-3 col-md-6">
+                          <label for="confirm-pswd" class="form-label">Confirm Password</label>
+                          {{form.password2}}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                        </div>
+                      </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+      </div>
+{% endblock %}

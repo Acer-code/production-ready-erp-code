@@ -1,0 +1,277 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- partial -->
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+    <main class="content-wrapper">
+        <div class="mdc-layout-grid">
+            <div class="d-flex justify-content-between mb-3">
+                <div class="header-title">
+                    <h4>User Management</h4>
+                </div>
+                {% if user.role == 'admin' %}
+                <a href="{% url 'create_user' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded"><i
+                        class="material-icons mdc-button__icon">add</i>Create User</a>
+                        {% endif %}
+            </div>
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Full Name</th>
+                                <th>Role</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                 {% if request.user.role == 'admin' %}
+                                <th>Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+
+                                <td>
+                                    {% if user.role == 'admin' %}
+                                    AD000{{user.id}}
+                                    {% elif user.role == 'director' %}
+                                    DIR000{{user.id}}
+                                    {% elif user.role == 'dealer' %}
+                                    VEN000{{user.id}}
+                                    {% elif user.sub_employee_role == 'sales' %}
+                                    SAL000{{user.id}}
+                                    {% elif user.sub_employee_role == 'service' %}
+                                    SER000{{user.id}}
+                                    {% elif user.sub_employee_role == 'dispatch' %}
+                                    DIS000{{user.id}}
+                                    {% elif user.sub_employee_role == 'inventory' %}
+                                    INV000{{user.id}}
+                                    {% endif %}
+                                </td>
+
+
+                                <td>{{user.get_full_name|title}}</td>
+                                {% if user.role == 'employee' %}
+                                <td>{{user.sub_employee_role|title}}</td>
+                                {% else %}
+                                <td>{{user.role|title}}</td>
+                                {% endif %}
+                                <td>{% if user.phone %}{{user.phone}}{% else %}---{% endif %}</td>
+                                <td>{{user.email}}</td>
+                                {% if request.user.role == 'admin' %}
+                                <td>
+                                    <span class="d-flex align-items-center action">
+                                        <button type="button" class="btn bg-success text-white me-2"
+                                            data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                      <form action="{% url 'delete_user' user.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn bg-danger text-white" onclick="return confirm('Are you sure ? you want to delete {{user.role}} account ?')">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                        </form>
+                                    </span>
+                                </td>
+                                {% endif %}
+                            </tr>
+
+                            <!-- Modal-edit-user -->
+                            <div class="modal fade" id="edit-user-{{user.id}}" tabindex="-1"
+                                aria-labelledby="editUserLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editUserLabel">Edit User</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            
+                                            <form action="{% url 'edit_user' user.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <div class="row">
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="role" class="form-label">Role</label>
+                                                        <select class="form-select form-control" id="role" name="role">
+                                                            <option value="">Select Role</option>
+                                                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                                            <option value="employee" {% if user.role == 'employee' %}selected{% endif %}>Employee</option>
+                                                            <option value="dealer" {% if user.role == 'dealer' %}selected{% endif %}>Vendor</option>
+                                                            <option value="director" {% if user.role == 'director' %}selected{% endif %}>Director</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="sub-role" class="form-label">Sub Role</label>
+                                                        <select class="form-select form-control" id="sub-role"
+                                                            name="sub_employee_role">
+                                                            <option>Select sub role</option>
+                                                            <option value="sales" {% if user.sub_employee_role == 'sales' %}selected{% endif %}>Sales</option>
+                                                            <option value="service" {% if user.sub_employee_role == 'service' %}selected{% endif %}>
+                                                                Service</option>
+                                                            <option value="inventory" {% if user.sub_employee_role == 'inventory' %}selected{% endif %}>Inventory</option>
+                                                            <option value="dispatch" {% if user.sub_employee_role == 'dispatch' %}selected{% endif %}>Dispatch</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="first-name" class="form-label">First Name</label>
+                                                        <input type="text" class="form-control" id="first-name"
+                                                            value="{{user.first_name}}" name="first_name" required>
+                                                    </div>
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="last-name" class="form-label">Last Name</label>
+                                                        <input type="text" class="form-control" id="last-name"
+                                                            value="{{user.last_name}}" name="last_name">
+                                                    </div>
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="phone" class="form-label">Phone</label>
+                                                        <input type="tel" class="form-control" id="phone"
+                                                            value="{{user.phone}}" name="phone" required>
+                                                    </div>
+                                                    <div class="mb-3 col-md-6">
+                                                        <label for="email-address" class="form-label">Email</label>
+                                                        <input type="email" class="form-control" id="email-address"
+                                                            value="{{user.email}}" name="email" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="company" class="form-label">Company</label>
+                                                        <input type="text" class="form-control" id="company"
+                                                            value="{{user.company}}" name="company">
+                                                    </div>
+
+                                                </div>
+                                                <div class="modal-footer justify-content-center">
+                                                    <button type="submit"
+                                                        class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Modal-edit-user -->
+
+                           
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<!-- Modal-add-user -->
+{% comment %}
+<div class="modal fade" id="add-user" tabindex="-1" aria-labelledby="addUserLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserLabel">Add User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            {% for msg in messages %}
+            {% if msg.error %}
+            <p class="text-danger">{{msg}}</p>
+            {% else %}
+            <p class="text-success">{{msg}}</p>
+            {% endif %}
+            {% endfor %}
+            <div class="modal-body">
+                <form action="{% url 'create_user' %}" method="POST">
+                    {% csrf_token %}
+
+                    <div class="row">
+
+                        <!-- Role -->
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select form-control" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="director">Director</option>
+                                <option value="employee">Employee</option>
+                                <option value="dealer">Dealer</option>
+                            </select>
+                        </div>
+
+                        <!-- Sub Role -->
+                        <div class="mb-3">
+                            <label class="form-label">Sub Role</label>
+                            <select class="form-select form-control" name="sub_employee_role">
+                                <option value="">Select Sub Role</option>
+                                <option value="sales">Sales</option>
+                                <option value="service">Service</option>
+                                <option value="inventory">Inventory</option>
+                                <option value="dispatch">Dispatch</option>
+                            </select>
+                        </div>
+
+                        <!-- First Name -->
+                        <div class="mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="first_name" placeholder="John" required>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="last_name" placeholder="Doe" required>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" placeholder="john@example.com"
+                                required>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="phone" placeholder="9876543210">
+                        </div>
+
+                        <!-- Company -->
+                        <div class="mb-3">
+                            <label class="form-label">Company</label>
+                            <input type="text" class="form-control" name="company" placeholder="ABC Pvt Ltd">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" placeholder="••••••••" required>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" name="confirm_password" required>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer justify-content-center">
+                        <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>                                                                                             
+{% endcomment %}
+<!-- Modal-add-user -->
+
+
+{% endblock %}

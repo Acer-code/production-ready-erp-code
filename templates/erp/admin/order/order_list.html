@@ -1,0 +1,86 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+  <main class="content-wrapper">
+    <div class="mdc-layout-grid">
+      <div class="d-flex justify-content-between mb-3">
+        <div class="header-title">
+          <h4>Sales Orders</h4>
+          <p class="mdc-typography mdc-theme--dark">Manage and track all sales orders</p>
+        </div>
+        {% if request.user.role == 'admin' or request.user.role == 'dealer' %}
+        <a href="{% url 'create_order' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded"><i
+            class="material-icons mdc-button__icon">add</i>New Order</a>
+            {% endif %}
+      </div>
+      <div class="row justify-content-between mb-3">
+        <div class="col-md-8">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by order number or customer...">
+            <span class="input-group-text bg-white">
+              <i class="fa fa-search"></i>
+            </span>
+          </div>
+        </div>
+        <div class="col-auto text-right">
+          <select class="form-select form-control">
+            <option>All Status</option>
+            <option>Open</option>
+            <option>Assigned</option>
+            <option>In Progress</option>
+            <option>Resolved</option>
+            <option>Closed</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Order#</th>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Ceated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td>PO000{{order.id}}</td>
+                <td>{{order.full_name}}</td>
+                <td>{{order.phone}}</td>
+                <td>{{order.grand_total}}</td>
+                <td>
+                  <!-- <span class="badge bg-info">Pending</span> -->
+                   <span class="badge
+                {% if order.status == 'pending' %}bg-warning
+                {% elif order.status == 'approved' %}bg-primary
+                {% elif order.status == 'rejected' %}bg-danger
+                {% elif order.status == 'dispatched' %}bg-info
+                {% elif order.status == 'delivered' %}bg-success
+                {% endif %}">
+                {{ order.get_status_display }}
+              </span>
+                </td>
+                <td>{{order.order_date}}</td>
+                <td><a href="{% url 'order_detail' order.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">View</a></td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+{% endblock %}

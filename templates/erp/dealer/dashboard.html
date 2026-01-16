@@ -1,0 +1,117 @@
+{% extends 'erp/admin/base.html' %}
+{% block title %}Dealer Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+  <main class="content-wrapper">
+
+    <!-- ================= KPI SECTION ================= -->
+    <div class="mdc-layout-grid">
+      <h4 class="mb-3">Key Performance Indicators</h4>
+
+      <div class="mdc-layout-grid__inner">
+
+        <!-- My Orders -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+          <div class="mdc-card info-card bg-pink">
+            <div class="card-inner">
+              <h5 class="card-title">My Orders</h5>
+              <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                {{ my_orders_count }}
+              </h5>
+              <a href="{% url 'order_list' %}" class="tx-12 view-detail">
+                View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+              </a>
+              <div class="card-icon">
+                <i class="fa fa-cube"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open Services -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+          <div class="mdc-card info-card bg-purple">
+            <div class="card-inner">
+              <h5 class="card-title">Open Service Requests</h5>
+              <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                {{ open_services_count }}
+              </h5>
+              <a href="{% url 'service_list' %}" class="tx-12 view-detail">
+                View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+              </a>
+              <div class="card-icon">
+                <i class="fa fa-comment-o"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed Services -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+          <div class="mdc-card info-card bg-green">
+            <div class="card-inner">
+              <h5 class="card-title">Completed Services</h5>
+              <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                {{ completed_services_count }}
+              </h5>
+              <a href="{% url 'service_list' %}?status=completed" class="tx-12 view-detail">
+                View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+              </a>
+              <div class="card-icon">
+                <i class="fa fa-check-square-o"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Shipments -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+          <div class="mdc-card info-card bg-blue">
+            <div class="card-inner">
+              <h5 class="card-title">Pending Shipments</h5>
+              <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                {{ pending_shipments }}
+              </h5>
+              <a href="{% url 'order_list' %}?status=dispatched" class="tx-12 view-detail">
+                View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+              </a>
+              <div class="card-icon">
+                <i class="fa fa-truck"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= QUICK ACTIONS ================= -->
+    <div class="mdc-layout-grid quick-actions">
+            <h4 class="mb-3">Quick Actions</h4>
+            <div class="mdc-layout-grid__inner">
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <a href="{% url 'raise_service' %}" class="mdc-card">
+                  <span>Raise New Request</span>
+                  <i class="fa fa-hand-paper-o font-icon" aria-hidden="true"></i>
+                </a>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <a href="{% url 'order_list' %}" class="mdc-card">
+                  <span>View All Orders</span>
+                  <i class="fa fa-cube font-icon" aria-hidden="true"></i>
+                </a>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <a href="{% url 'product_list' %}" class="mdc-card">
+                  <span>Browse Products</span>
+                  <i class="fa fa-shopping-bag font-icon" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+  </main>
+</div>
+
+{% endblock %}

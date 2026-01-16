@@ -1,0 +1,18 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+<form method="post" action="{% url 'change_service_status' service.id %}">
+  {% csrf_token %}
+  <label>Status</label>
+  <select name="status" class="form-select">
+    {% for key,val in service.STATUS_CHOICES %}
+      <option value="{{ key }}"
+        {% if service.status == key %}selected{% endif %}>
+        {{ val }}
+      </option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-warning mt-2">Update</button>
+</form>
+<hr>
+{% endblock %}

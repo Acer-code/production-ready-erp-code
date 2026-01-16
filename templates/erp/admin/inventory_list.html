@@ -1,0 +1,144 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+    <main class="content-wrapper">
+        <div class="mdc-layout-grid">
+            <div class="d-flex justify-content-between mb-3">
+                <div class="header-title">
+                    <h4>Inventory</h4>
+                    <p class="mdc-typography mdc-theme--dark">Track stock levels and manage inventory</p>
+                </div>
+            </div>
+            {% if low_stocks %}
+            <div class="mdc-card stock-card">
+                <h4 class="mdc-typography--subtitle2 mb-5"><span><i class="fa fa-exclamation-triangle"
+                            aria-hidden="true"></i></span> Low Stock Alert <span>({{low_stock_count}})</span></h4>
+                <div class="unit-block">
+                    
+                    {% for low_stock in low_stocks %}
+                    <div class="unit-stock d-flex justify-content-between mb-3">
+                        <span class="mdc-typography--headline6">{% if low_stock.product.product_model %}{{low_stock.product.product_model}}{% endif %} {{low_stock.product.name}}</span>
+                        <span class="badge bg-danger">{{low_stock.current_quantity}}/{{low_stock.total_stock}}
+                            units</span>
+                    </div>
+                    {% endfor %}
+                   
+
+                </div>
+            </div>
+             {% endif %}
+            <div class="mdc-card">
+                <div class="table-responsive">
+                    <h4 class="mdc-typography--subtitle2">Inventory Items <span>({{stocks|length}})</span></h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Category</th>
+                                <th>Current Stock</th>
+                                <th>Total Stock</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                {% if request.user.role == 'admin' or request.user.sub_employee_role == 'inventory' %}
+                                <th>Action</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr>
+                                <td>{% if stock.product.product_model %}{{stock.product.product_model}}{% endif %}
+                                    {{stock.product.name}} </td>
+                                <td>{{stock.product.category}}</td>
+                                <td>{{stock.current_quantity}}</td>
+                                <td>{{stock.total_stock}}</td>
+                                <td>{{stock.location}}</td>
+
+                                {% if stock.current_quantity > stock.min_stock_level %}
+                                <td><span class="badge bg-success">In Stock</span></td>
+                                {% elif stock.current_quantity <= stock.min_stock_level and stock.current_quantity != 0 %}
+                                    <td><span class="badge bg-warning">Low Stock</span></td>
+                                    {% else %}
+                                    <td><span class="badge bg-danger">Out of Stock</span></td>
+
+                                    {% endif %}
+                                    {% if request.user.role == 'admin' or request.user.sub_employee_role == 'inventory' %}
+                                    <td>
+                                        <span class="action">
+
+                                            <button type="button" class="btn bg-light text-grey" data-bs-toggle="modal"
+                                                data-bs-target="#update-inventory-{{ stock.id }}">
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
+                                        </span>
+                                    </td>
+                                    {% endif %}
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<!-- Modal-update-inventory -->
+{% for stock in stocks %}
+<div class="modal fade" id="update-inventory-{{ stock.id }}" tabindex="-1"
+    aria-labelledby="update-inventory-label-{{ stock.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateInventoryLabel">Update
+                    Inventory ({% if stock.product.product_model %}{{stock.product.product_model}}{% endif %}
+                    {{stock.product.name}})</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'update_inventory_stock' stock.id %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="mb-3 col-12">
+                            <label for="total-quantity" class="form-label">Total Quantity*</label>
+                            <input type="number" class="form-control" name="total_stock" id="total-quantity"
+                                value="{{stock.total_stock}}" required>
+                        </div>
+                        <div class="mb-3 col-12">
+                            <label for="current-quantity" class="form-label">Current Quantity*</label>
+                            <input type="number" class="form-control" name="current_quantity" id="current-quantity"
+                                value="{{stock.current_quantity}}" required>
+                        </div>
+                        <div class="mb-3 col-12">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" name="location" id="location"
+                                value="{{stock.location}}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="mdc-button mdc-button--raised rounded" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Update
+                        Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+<!-- Modal-update-inventory -->
+
+
+
+{% endblock %}

@@ -1,0 +1,114 @@
+
+
+        <div class="mdc-drawer__header">
+                <a href="{% if request.user.role == 'admin' %}{% url 'admin_dashboard' %}{% elif request.user.role == 'director' %}{% url 'director_dashboard' %}{% elif request.user.role == 'dealer' %}{% url 'dealer_dashboard' %}{% endif %}" class="brand-logo">
+                    <!-- <img src="../assets/images/logo.svg" alt="logo"> -->
+                    ERP Management
+                </a>
+            </div>
+            <div class="mdc-drawer__content">
+                <div class="user-info">
+                    <p class="name">{{request.user.get_full_name|title}}  ({% if request.user.role != 'employee' %}{{request.user.role}} {% else %}{{request.user.sub_employee_role}}{% endif %})</p>
+                    <p class="email">{{request.user.email}}</p>
+                </div>
+                <div class="mdc-list-group">
+                    <nav class="mdc-list mdc-drawer-menu">
+                        <div class="mdc-list-item mdc-drawer-item">
+                           
+                            <a class="mdc-drawer-link" 
+                            href=" 
+                            {% if request.user.role == 'admin' %}{% url 'admin_dashboard' %} 
+                            {% elif request.user.role == 'director' %}{% url 'director_dashboard' %}
+                            {% elif request.user.role == 'dealer' %}{% url 'dealer_dashboard' %}
+                            {% elif request.user.sub_employee_role == 'sales' %}{% url 'sales_dashboard' %}
+                            {% elif request.user.sub_employee_role == 'service' %}{% url 'service_dashboard' %}
+                            {% elif request.user.sub_employee_role == 'inventory' %}{% url 'inventory_dashboard' %}
+                            {% elif request.user.sub_employee_role == 'dispatch' %}{% url 'dispatch_dashboard' %}
+                            {% endif %}">
+                                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon"
+                                    aria-hidden="true">home</i>
+                                Dashboard
+                            </a>
+                        </div>
+                        {% if request.user.role == 'admin' or request.user.role == 'director' %}
+                       {% comment %} <!-- {% if request.user.role != 'dealer' and request.user.sub_employee_role != 'service' and request.user.sub_employee_role != 'sales' %} -->{% endcomment %}                        <div class="mdc-list-item mdc-drawer-item">
+                            <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel"
+                                data-target="items-sub-menu">
+                                <i class="fa fa-users mdc-list-item__start-detail mdc-drawer-item-icon"
+                                    aria-hidden="true"></i>
+                                  Users
+                                   <i class="mdc-drawer-arrow material-icons">chevron_right</i>
+                            </a>
+                            <div class="mdc-expansion-panel" id="items-sub-menu">
+                                <nav class="mdc-list mdc-drawer-submenu">
+                                    {% if request.user.role == 'admin' %}
+                                    <div class="mdc-list-item mdc-drawer-item">
+                                        <a class="mdc-drawer-link" href="{% url 'create_user' %}">
+                                            Add User
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                    <div class="mdc-list-item mdc-drawer-item">
+                                        <a class="mdc-drawer-link" href="{% url 'user_list' %}">
+                                           View Users
+                                        </a>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="mdc-list-item mdc-drawer-item">
+                            <a class="mdc-drawer-link" href="{% url 'product_list' %}">
+                                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon"
+                                    aria-hidden="true">dashboard</i>
+                                Products
+                               
+                              
+                            </a>
+                        </div>
+                        {% if request.user.role != 'dealer' %}
+                        <div class="mdc-list-item mdc-drawer-item">
+                            <a class="mdc-drawer-link" href="{% url 'inventory_list' %}">
+                                <i class="fa fa-cube mdc-list-item__start-detail mdc-drawer-item-icon"
+                                    aria-hidden="true"></i>
+                                Inventory
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if request.user.sub_employee_role != 'service' and request.user.sub_employee_role != 'inventory' %}
+                        <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+              <a class="mdc-expansion-panel-link" href="#" data-toggle="expansionPanel" data-target="sales-page-submenu" tabindex="-1">
+               <i class="fa fa-line-chart mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true"></i>
+                Sales Orders
+                <i class="mdc-drawer-arrow material-icons">chevron_right</i>
+              </a>
+              <div class="mdc-expansion-panel" id="sales-page-submenu">
+                <nav class="mdc-list mdc-drawer-submenu">
+                    <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                        {% if request.user.role == 'admin' or request.user.role == 'dealer' or request.user.sub_employee_role == 'sales' %}
+                      <a class="mdc-drawer-link" href="{% url 'create_order' %}" tabindex="-1">
+                        Create Order
+                      </a>
+                      {% endif %}
+                    </div>
+                  <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                    <a class="mdc-drawer-link" href="{% url 'order_list' %}" tabindex="-1">
+                      Orders
+                    </a>
+                  </div>
+                </nav>
+              </div>
+                       </div>
+                       {% endif %}
+                       {% if request.user.sub_employee_role != 'inventory' and request.user.sub_employee_role != 'dispatch' %}
+                        <div class="mdc-list-item mdc-drawer-item">
+                            <a class="mdc-drawer-link" href="{% url 'service_list' %}">
+                                <i class="material-icons mdc-list-item__start-detail mdc-drawer-item-icon"
+                                    aria-hidden="true">pages</i>
+                                Service
+                            </a>
+                        </div>
+                        {% endif%}
+                    </nav>
+                </div>
+            </div>

@@ -1,0 +1,88 @@
+{% extends 'erp/admin/base.html' %}
+{% block content %}
+
+     
+<!-- content-block -->
+      <div class="page-wrapper mdc-toolbar-fixed-adjust">
+        <main class="content-wrapper">
+          <div class="mdc-layout-grid">
+            <div class="mdc-layout-grid__inner">
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card info-card bg-blue">
+                  <div class="card-inner">
+                    <h5 class="card-title">Total Products</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_products }}</h5>
+                    <p class="tx-12 text-muted">Available Products</p>
+                    <div class="card-icon">
+                      <i class="fa fa-cart-plus"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card info-card bg-pink">
+                  <div class="card-inner">
+                    <h5 class="card-title">Dealers</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_dealers }}</h5>
+                    <p class="tx-12 text-muted"></p>
+                    <div class="card-icon">
+                      <i class="fa fa-users"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card info-card bg-green">
+                  <div class="card-inner">
+                    <h5 class="card-title">Employess</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_employees }}</h5>
+                    <p class="tx-12 text-muted"></p>
+                    <div class="card-icon">
+                      <i class="fa fa-user-plus" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card info-card bg-purple">
+                  <div class="card-inner">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_orders }}</h5>
+                    <p class="tx-12 text-muted">Total interactions</p>
+                    <div class="card-icon">
+                      <i class="fa fa-cubes" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mdc-layout-grid">
+            <h3>Quick Actions</h3>
+            <div class="mdc-layout-grid__inner">
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card quick-actions">
+                  <div class="col-md-7">
+                    <h4 class="mdc-typography--headline6">Total Revenue</h4>
+                    <p class="mdc-typography mdc-theme--dark">₹ {{ total_revenue|floatformat:2 }}</p>
+                  </div>
+                  <i class="fa fa-database font-icon" aria-hidden="true"></i>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-4-tablet">
+                <div class="mdc-card quick-actions">
+                  <div class="col-md-7">
+                    <h4 class="mdc-typography--headline6">Last 30 Days Sales</h4>
+                    <p class="mdc-typography mdc-theme--dark">₹ {{ monthly_sales|floatformat:2 }}</p>
+                  </div>
+                  <i class="fa fa-signal font-icon" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+{% endblock %}
+
+

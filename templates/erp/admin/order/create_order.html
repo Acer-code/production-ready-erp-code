@@ -1,0 +1,282 @@
+
+
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="page-wrapper">
+  <main class="content-wrapper">
+    <div class="mdc-layout-grid">
+
+      <div class="header-title mb-3">
+        <h4>Create Order</h4>
+      </div>
+
+      <form method="post" id="orderForm">
+        {% csrf_token %}
+        {% for msg in messages %}
+          <p class="text-danger">{{ msg }}</p>
+        {% endfor %}
+
+        {# ================= DEALER SELECTION (ADMIN & SALES ONLY) ================= #}
+        {% if request.user.role != 'dealer' %}
+        <div class="mdc-card mb-4">
+          <h4 class="mb-4">Dealer</h4>
+          <div class="row">
+            <div class="col-12 mb-3">
+              {{ order_form.dealer.label_tag }}
+              {{ order_form.dealer}}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ================= CUSTOMER DETAILS ================= #}
+        <div class="mdc-card mb-4">
+          <h4 class="mb-4">Customer Details</h4>
+          <div class="row">
+            <div class="col-12 mb-3">
+              {{ order_form.full_name.label_tag }}
+              {{ order_form.full_name }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              {{ order_form.phone.label_tag }}
+              {{ order_form.phone }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              {{ order_form.email.label_tag }}
+              {{ order_form.email }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              {{ order_form.gstin.label_tag }}
+              {{ order_form.gstin }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              {{ order_form.company_name.label_tag }}
+              {{ order_form.company_name }}
+            </div>
+          </div>
+        </div>
+
+        {# ================= SHIPPING ADDRESS ================= #}
+        <div class="mdc-card mb-4">
+          <h4 class="mb-4">Shipping Address</h4>
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label>Building</label>
+              {{ order_form.shipp_building }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Pincode</label>
+              {{ order_form.shipp_zip }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>City</label>
+              {{ order_form.shipp_city }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>State</label>
+              {{ order_form.shipp_state }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Country</label>
+              {{ order_form.shipp_country }}
+            </div>
+          </div>
+        </div>
+
+        {# ================= BILLING SAME AS SHIPPING ================= #}
+        <div class="my-3">
+          {{ order_form.billing_same_as_shipping }}
+          {{ order_form.billing_same_as_shipping.label_tag }}
+        </div>
+
+        {# ================= BILLING ADDRESS ================= #}
+        <div class="mdc-card mb-4" id="billingSection">
+          <h4 class="mb-4">Billing Address</h4>
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label>Building</label>
+              {{ order_form.bill_building }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Pincode</label>
+              {{ order_form.bill_zip }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>City</label>
+              {{ order_form.bill_city }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>State</label>
+              {{ order_form.bill_state }}
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label>Country</label>
+              {{ order_form.bill_country }}
+            </div>
+          </div>
+        </div>
+
+        {# ================= ADD PRODUCTS ================= #}
+        <h4 class="mb-4">Add Products</h4>
+
+        <div class="row mb-3">
+          <div class="col-md-7">
+            <select id="product_select" class="form-select form-control">
+              <option value="">Select Product</option>
+              {% for product in products %}
+              <option value="{{ product.id }}"
+                      data-price="{{ product.price }}"
+                      data-gst="{{ product.tax }}">
+                {{ product.name }}{% if product.product_model %} - {{ product.product_model }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <input type="number" id="product_qty" value="1" min="1" class="form-control">
+          </div>
+
+          <div class="col-md-2">
+            <button type="button" id="addProduct"
+                    class="form-control bg-success text-white">
+              Add
+            </button>
+          </div>
+        </div>
+
+        {# ================= PRODUCT TABLE ================= #}
+        <div class="table-responsive mb-4">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>GST %</th>
+                <th>Total</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+
+        {{ formset.management_form }}
+
+        {# ================= TOTALS ================= #}
+        <div class="mdc-card mb-4">
+          <h4 class="mb-4">Order Summary</h4>
+          <p>Subtotal: ₹<span id="subtotal">0.00</span></p>
+          <p>GST: ₹<span id="gst">0.00</span></p>
+          <p><strong>Grand Total: ₹<span id="grand">0.00</span></strong></p>
+        </div>
+
+        <button type="submit"
+                class="mdc-button mdc-button--raised rounded"
+                onclick="return validateOrder(this)">
+          Create Order
+        </button>
+
+      </form>
+    </div>
+  </main>
+</div>
+
+{# ================= JS ================= #}
+<script>
+  const billingCheckbox = document.getElementById('id_billing_same_as_shipping');
+  const billingSection = document.getElementById('billingSection');
+
+  if (billingCheckbox) {
+    billingCheckbox.addEventListener('change', () => {
+      billingSection.style.display = billingCheckbox.checked ? 'none' : 'block';
+    });
+  }
+
+  let formIndex = 0;
+  let subtotal = 0, gstTotal = 0;
+
+  document.getElementById('addProduct').addEventListener('click', () => {
+    const select = document.getElementById('product_select');
+    const qty = parseInt(document.getElementById('product_qty').value);
+
+    if (!select.value || qty < 1) return;
+
+    const unitPrice = parseFloat(select.selectedOptions[0].dataset.price);
+    const gstRate = parseFloat(select.selectedOptions[0].dataset.gst);
+    const productId = select.value;
+    const productName = select.selectedOptions[0].text;
+
+    const base = unitPrice * qty;
+    const gst = base * gstRate / 100;
+    const total = base + gst;
+
+    subtotal += base;
+    gstTotal += gst;
+
+    document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+    document.getElementById('gst').innerText = gstTotal.toFixed(2);
+    document.getElementById('grand').innerText = (subtotal + gstTotal).toFixed(2);
+
+    const row = `
+      <tr id="row-${formIndex}">
+        <td>${productName}
+          <input type="hidden" name="items-${formIndex}-product" value="${productId}">
+        </td>
+        <td>${qty}
+          <input type="hidden" name="items-${formIndex}-qty" value="${qty}">
+        </td>
+        <td>₹${unitPrice.toFixed(2)}</td>
+        <td>${gstRate}%</td>
+        <td>₹${total.toFixed(2)}</td>
+        <td>
+          <button type="button"
+                  onclick="removeRow(${formIndex}, ${base}, ${gst})"
+                  class="btn bg-danger text-white">
+            <i class="fa fa-trash-o"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+
+    document.getElementById('itemsBody').insertAdjacentHTML('beforeend', row);
+    document.getElementById('id_items-TOTAL_FORMS').value = ++formIndex;
+
+    select.value = '';
+    document.getElementById('product_qty').value = 1;
+  });
+
+  function removeRow(index, base, gst) {
+    document.getElementById(`row-${index}`).remove();
+    subtotal -= base;
+    gstTotal -= gst;
+    document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+    document.getElementById('gst').innerText = gstTotal.toFixed(2);
+    document.getElementById('grand').innerText = (subtotal + gstTotal).toFixed(2);
+  }
+
+  function validateOrder(btn) {
+    if (formIndex === 0) {
+      alert("Please add at least one product");
+      return false;
+    }
+    btn.disabled = true;
+    btn.form.submit();
+  }
+</script>
+{% endblock %}

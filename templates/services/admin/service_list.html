@@ -1,0 +1,73 @@
+{% extends "erp/admin/base.html" %}
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+    <main class="content-wrapper">
+        <div class="mdc-layout-grid">
+            <div class="d-flex justify-content-between mb-3">
+        <div class="header-title">
+          <h4>Service Requests</h4>
+          <p class="mdc-typography mdc-theme--dark">Manage and see service status</p>
+        </div>
+        {% if request.user.role == 'admin' or request.user.role == 'dealer' or request.user.sub_employee_role == 'sales' %}
+        <a href="{% url 'raise_service' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded"><i class="material-icons mdc-button__icon">add</i>Raise Service</a>
+          {% endif %}  
+      </div>
+            <div class="card">
+                <div class="table-responsive">
+
+
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Product</th>
+                                <th>Serial No</th>
+                                <th>Status</th>
+                                <th>Engineer</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{% if service.product_model %}{{service.product_model}}{% endif %} {{ service.product_name }}</td>
+                                <td>{{ service.product_serial }}</td>
+                                <td > <span class="badge 
+                                {% if service.status == 'raised' %}bg-warning text-dark
+                                {% elif service.status == 'assigned' %}bg-info
+                                {% elif service.status == 'in_progress' %}bg-primary
+                                {% elif service.status == 'waiting_spare' %}bg-warning
+                                {% elif service.status == 'completed' %}bg-success
+                                {% elif service.status == 'closed' %}bg-secondary
+                                {% endif %}">{{ service.status|title }}</span></td>
+                                {% if service.assigned_engineer %}
+                                <td>{{ service.assigned_engineer.get_full_name|title}} | <small>{{service.assigned_engineer.phone}}</small></td>
+                                  <td>
+                                    {% else %}
+                                <td><span class="badge bg-danger">Not Assigned</span></td>
+                                  <td>
+                                    {% endif %}
+                                    <a href="{% url 'service_detail' service.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No Service Requests</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+
+{% endblock %}

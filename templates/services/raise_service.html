@@ -1,0 +1,43 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+    <!-- content-block -->
+    <main class="content-wrapper">
+        <div class="mdc-layout-grid">
+            <div class="header-title mb-3">
+                <h4>Raise Service Request</h4>
+            </div>
+            <div class="mdc-card">
+
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                    <div class="mb-3">
+                        {{ field.label_tag }}
+                        {{ field }}
+
+                        {% if field.errors %}
+                        <div class="text-danger small">
+                            {{ field.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+                {% endblock %}

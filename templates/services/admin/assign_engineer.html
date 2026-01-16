@@ -1,0 +1,24 @@
+{% extends "erp/admin/base.html" %}
+{% block content %}
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+    <main class="content-wrapper">
+        <div class="mdc-layout-grid">
+<h4>Assign Engineer</h4>
+
+<form method="post">
+    {% csrf_token %}
+    <select name="engineer_id" class="form-control form-select mb-3" required>
+        <option value="">Select Engineer</option>
+        {% for engineer in engineers %}
+            <option value="{{ engineer.id }}">
+                {{ engineer.get_full_name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button class="btn btn-success">Assign</button>
+</form>
+</div>
+    </main>
+    </div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+  <main class="content-wrapper">
+
+    <div class="mdc-layout-grid">
+      <h4 class="mb-3">Key Metrics</h4>
+
+      <div class="mdc-layout-grid__inner">
+
+        <!-- Total Products -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+          <div class="mdc-card quick-actions">
+            <div class="col-md-7">
+              <h4 class="mdc-typography--headline6">Total Products</h4>
+              <p class="tx-14 mb-0">
+                {{ total_products }} Products
+              </p>
+            </div>
+            <i class="fa fa-cubes font-icon"></i>
+          </div>
+        </div>
+
+        <!-- Open Service Requests -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+          <div class="mdc-card quick-actions">
+            <div class="col-md-7">
+              <h4 class="mdc-typography--headline6">Open Service Requests</h4>
+              <p class="tx-14 mb-0">
+                {{ open_service_requests }} Requests
+              </p>
+            </div>
+            <i class="fa fa-comment-o font-icon"></i>
+          </div>
+        </div>
+
+        <!-- Assigned Services -->
+        <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+          <div class="mdc-card quick-actions">
+            <div class="col-md-7">
+              <h4 class="mdc-typography--headline6">Assigned Services</h4>
+              <p class="tx-14 mb-0">
+                {{ assigned_services }} Services
+              </p>
+            </div>
+            <i class="fa fa-cogs font-icon"></i>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+{% endblock %}
