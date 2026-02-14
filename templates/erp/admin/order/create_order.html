@@ -7,12 +7,14 @@
 <div class="page-wrapper">
   <main class="content-wrapper">
     <div class="mdc-layout-grid">
-
-      <div class="header-title mb-3">
-        <h4>Create Order</h4>
+      <div class=" d-flex justify-content-between mb-3">
+        <div class="header-title">
+          <h4>Create Order</h4>
+        </div>
+        <a href="{% url 'order_list' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">View</a>
       </div>
-
-      <form method="post" id="orderForm">
+      <div class="row">
+        <form method="post" id="orderForm">
         {% csrf_token %}
         {% for msg in messages %}
           <p class="text-danger">{{ msg }}</p>
@@ -20,184 +22,242 @@
 
         {# ================= DEALER SELECTION (ADMIN & SALES ONLY) ================= #}
         {% if request.user.role != 'dealer' %}
-        <div class="mdc-card mb-4">
-          <h4 class="mb-4">Dealer</h4>
-          <div class="row">
-            <div class="col-12 mb-3">
+        <div class="col-12">
+            <div class="mdc-card mb-4">
+              <h4 class="mb-4">Dealer</h4>
               {{ order_form.dealer.label_tag }}
               {{ order_form.dealer}}
             </div>
-          </div>
         </div>
         {% endif %}
 
         {# ================= CUSTOMER DETAILS ================= #}
-        <div class="mdc-card mb-4">
-          <h4 class="mb-4">Customer Details</h4>
-          <div class="row">
-            <div class="col-12 mb-3">
-              {{ order_form.full_name.label_tag }}
-              {{ order_form.full_name }}
-            </div>
+        <div class="col-12">
+          <div class="mdc-card mb-4">
+              <h4 class="mb-4">Customer Details</h4>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="id_full_name">Full Name<span class="text-danger">*</span></label>
+                  {{ order_form.full_name }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              {{ order_form.phone.label_tag }}
-              {{ order_form.phone }}
-            </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_phone">Phone<span class="text-danger">*</span></label>
+                  {{ order_form.phone }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              {{ order_form.email.label_tag }}
-              {{ order_form.email }}
-            </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_email">Email<span class="text-danger">*</span></label>
+                  {{ order_form.email }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              {{ order_form.gstin.label_tag }}
-              {{ order_form.gstin }}
-            </div>
+                <div class="col-md-6 mb-3">
+                    <label for="id_company_name">Company Name<span class="text-danger">*</span></label>
+                  {{ order_form.company_name }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              {{ order_form.company_name.label_tag }}
-              {{ order_form.company_name }}
-            </div>
+                <div class="col-md-6 mb-3">
+                    <label for="id_gstin">GSTIN<span class="text-danger">*</span></label>
+                  {{ order_form.gstin }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="id_payment_mode">Payment Mode<span class="text-danger">*</span></label>
+                  {{ order_form.payment_mode }}
+                </div>
+
+              </div>
           </div>
         </div>
 
         {# ================= SHIPPING ADDRESS ================= #}
-        <div class="mdc-card mb-4">
-          <h4 class="mb-4">Shipping Address</h4>
-          <div class="row">
-            <div class="col-12 mb-3">
-              <label>Building</label>
-              {{ order_form.shipp_building }}
-            </div>
+        <div class="col-12">
+          <div class="mdc-card mb-4">
+              <h4 class="mb-4">Shipping Address</h4>
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="id_shipp_building">Building<span class="text-danger">*</span></label>
+                  {{ order_form.shipp_building }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              <label>Pincode</label>
-              {{ order_form.shipp_zip }}
-            </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_shipp_zip">Pin Code<span class="text-danger">*</span></label>
+                  {{ order_form.shipp_zip }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              <label>City</label>
-              {{ order_form.shipp_city }}
-            </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_shipp_city">City<span class="text-danger">*</span></label>
+                  {{ order_form.shipp_city }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              <label>State</label>
-              {{ order_form.shipp_state }}
-            </div>
+                <div class="col-md-6 mb-3">
+                  <label for="id_shipp_state">State<span class="text-danger">*</span></label>
+                  {{ order_form.shipp_state }}
+                </div>
 
-            <div class="col-md-6 mb-3">
-              <label>Country</label>
-              {{ order_form.shipp_country }}
+                <div class="col-md-6 mb-3">
+                  <label for="id_shipp_country">Country<span class="text-danger">*</span></label>
+                  {{ order_form.shipp_country }}
+                </div>
             </div>
           </div>
         </div>
 
         {# ================= BILLING SAME AS SHIPPING ================= #}
-        <div class="my-3">
-          {{ order_form.billing_same_as_shipping }}
-          {{ order_form.billing_same_as_shipping.label_tag }}
+        <div class="col-12 my-3">
+            {{ order_form.billing_same_as_shipping }}
+            {{ order_form.billing_same_as_shipping.label_tag }}
         </div>
 
         {# ================= BILLING ADDRESS ================= #}
-        <div class="mdc-card mb-4" id="billingSection">
-          <h4 class="mb-4">Billing Address</h4>
-          <div class="row">
-            <div class="col-12 mb-3">
-              <label>Building</label>
-              {{ order_form.bill_building }}
-            </div>
+        <div class="col-12">
+          <div class="mdc-card mb-4" id="billingSection">
+            <h4 class="mb-4">Billing Address</h4>
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="id_bill_building">Building<span class="text-danger">*</span></label>
+                {{ order_form.bill_building }}
+              </div>
 
-            <div class="col-md-6 mb-3">
-              <label>Pincode</label>
-              {{ order_form.bill_zip }}
-            </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_bill_zip">Pin Code<span class="text-danger">*</span></label>
+                {{ order_form.bill_zip }}
+              </div>
 
-            <div class="col-md-6 mb-3">
-              <label>City</label>
-              {{ order_form.bill_city }}
-            </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_bill_city">City<span class="text-danger">*</span></label>
+                {{ order_form.bill_city }}
+              </div>
 
-            <div class="col-md-6 mb-3">
-              <label>State</label>
-              {{ order_form.bill_state }}
-            </div>
+              <div class="col-md-6 mb-3">
+                <label for="id_bill_state">State<span class="text-danger">*</span></label>
+                {{ order_form.bill_state }}
+              </div>
 
-            <div class="col-md-6 mb-3">
-              <label>Country</label>
-              {{ order_form.bill_country }}
+              <div class="col-md-6 mb-3">
+                <label for="id_bill_country">Country<span class="text-danger">*</span></label>
+                {{ order_form.bill_country }}
+              </div>
             </div>
           </div>
         </div>
 
         {# ================= ADD PRODUCTS ================= #}
-        <h4 class="mb-4">Add Products</h4>
+        <div class="col-12">
+            <h4 class="mb-4">Add Products</h4>
 
-        <div class="row mb-3">
-          <div class="col-md-7">
-            <select id="product_select" class="form-select form-control">
-              <option value="">Select Product</option>
-              {% for product in products %}
-              <option value="{{ product.id }}"
-                      data-price="{{ product.price }}"
-                      data-gst="{{ product.tax }}">
-                {{ product.name }}{% if product.product_model %} - {{ product.product_model }}{% endif %}
-              </option>
-              {% endfor %}
-            </select>
-          </div>
+          <div class="row mb-3">
+            <div class="col-md-7 col-6">
+              <select id="product_select" class="form-select form-control">
+                <option value="">Select Product</option>
+                {% for product in products %}
+                <option value="{{ product.id }}"
+                        data-price="{{ product.price }}"
+                        data-gst="{{ product.tax }}">
+                  {{ product.name }}{% if product.product_model %} - {{ product.product_model }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
 
-          <div class="col-md-3">
-            <input type="number" id="product_qty" value="1" min="1" class="form-control">
-          </div>
+            <div class="col-md-3 col-3">
+              <input type="number" id="product_qty" value="1" min="1" class="form-control">
+            </div>
 
-          <div class="col-md-2">
-            <button type="button" id="addProduct"
-                    class="form-control bg-success text-white">
-              Add
-            </button>
+            <div class="col-md-2 col-3">
+              <button type="button" id="addProduct"
+                      class="form-control bg-success text-white">
+                Add
+              </button>
+            </div>
           </div>
         </div>
 
         {# ================= PRODUCT TABLE ================= #}
-        <div class="table-responsive mb-4">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>GST %</th>
-                <th>Total</th>
-                <th>Remove</th>
-              </tr>
-            </thead>
-            <tbody id="itemsBody"></tbody>
-          </table>
+        <div class="col-12">
+          <div class="table-responsive mb-4">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Unit Price</th>
+                  <th>GST%</th>
+                  <th>Total</th>
+                  <th class="space">Remove</th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
         </div>
 
         {{ formset.management_form }}
 
         {# ================= TOTALS ================= #}
-        <div class="mdc-card mb-4">
-          <h4 class="mb-4">Order Summary</h4>
-          <p>Subtotal: ₹<span id="subtotal">0.00</span></p>
-          <p>GST: ₹<span id="gst">0.00</span></p>
-          <p><strong>Grand Total: ₹<span id="grand">0.00</span></strong></p>
+        <div class="col-12">
+            <div class="mdc-card mb-4">
+            <h4 class="mb-4">Order Summary</h4>
+            <p>Subtotal: ₹<span id="subtotal">0.00</span></p>
+            <p>GST: ₹<span id="gst">0.00</span></p>
+            <p><strong>Grand Total: ₹<span id="grand">0.00</span></strong></p>
+          </div>
         </div>
 
-        <button type="submit"
+        <div class="col-12 d-flex justify-content-between">
+          <button type="submit"
                 class="mdc-button mdc-button--raised rounded"
                 onclick="return validateOrder(this)">
-          Create Order
+                Create Order
         </button>
+          <a href="{% url 'order_list' %}"  class="mdc-button mdc-button--outlined rounded">Cancel</a>
+        </div>
 
       </form>
+      </div>
     </div>
   </main>
 </div>
 
 {# ================= JS ================= #}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const dealerSelect = document.getElementById("id_dealer");
+    if (!dealerSelect) return;
+
+    dealerSelect.addEventListener("change", function () {
+        const dealerId = this.value;
+        if (!dealerId) return;
+
+        fetch(`/erp/ajax/get-dealer/${dealerId}/`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById("id_full_name").value = data.full_name || '';
+                    document.getElementById("id_phone").value = data.phone || '';
+                    document.getElementById("id_email").value = data.email || '';
+                    document.getElementById("id_company_name").value = data.company || '';
+                    document.getElementById("id_gstin").value = data.gstin || '';
+
+                    document.getElementById("id_bill_building").value = data.bill_building || '';
+                    document.getElementById("id_bill_city").value = data.bill_city || '';
+                    document.getElementById("id_bill_state").value = data.bill_state || '';
+                    document.getElementById("id_bill_zip").value = data.bill_zip || '';
+                    document.getElementById("id_bill_country").value = data.bill_country || '';
+
+                    document.getElementById("id_shipp_building").value = data.shipp_building || '';
+                    document.getElementById("id_shipp_city").value = data.shipp_city || '';
+                    document.getElementById("id_shipp_state").value = data.shipp_state || '';
+                    document.getElementById("id_shipp_zip").value = data.shipp_zip || '';
+                    document.getElementById("id_shipp_country").value = data.shipp_country || '';
+                }
+            });
+    });
+
+});
+</script>
+
 <script>
   const billingCheckbox = document.getElementById('id_billing_same_as_shipping');
   const billingSection = document.getElementById('billingSection');
@@ -208,10 +268,11 @@
     });
   }
 
-  let formIndex = 0;
-  let subtotal = 0, gstTotal = 0;
 
-  document.getElementById('addProduct').addEventListener('click', () => {
+let formIndex = 0;
+let subtotal = 0, gstTotal = 0;
+
+document.getElementById('addProduct').addEventListener('click', () => {
     const select = document.getElementById('product_select');
     const qty = parseInt(document.getElementById('product_qty').value);
 
@@ -255,28 +316,22 @@
     `;
 
     document.getElementById('itemsBody').insertAdjacentHTML('beforeend', row);
-    document.getElementById('id_items-TOTAL_FORMS').value = ++formIndex;
+
+    formIndex++;
+    document.getElementById('id_items-TOTAL_FORMS').value = formIndex;
 
     select.value = '';
     document.getElementById('product_qty').value = 1;
-  });
+});
 
-  function removeRow(index, base, gst) {
+function removeRow(index, base, gst) {
     document.getElementById(`row-${index}`).remove();
     subtotal -= base;
     gstTotal -= gst;
     document.getElementById('subtotal').innerText = subtotal.toFixed(2);
     document.getElementById('gst').innerText = gstTotal.toFixed(2);
     document.getElementById('grand').innerText = (subtotal + gstTotal).toFixed(2);
-  }
-
-  function validateOrder(btn) {
-    if (formIndex === 0) {
-      alert("Please add at least one product");
-      return false;
-    }
-    btn.disabled = true;
-    btn.form.submit();
-  }
+}
 </script>
+
 {% endblock %}

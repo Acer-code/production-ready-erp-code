@@ -13,22 +13,13 @@ class Product(models.Model):
         (5,'5%'),
     ]
     name= models.CharField(max_length=200,blank=False)
-    product_model = models.CharField(max_length =20, blank=True)
+    product_model = models.CharField(max_length =20, blank=True, null=True)
     category = models.CharField(max_length=150, blank=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tax = models.DecimalField(max_digits=5, decimal_places=2, default=18, choices=TAX_RATE)
     img = models.ImageField(upload_to='product/images/')
     # desc = models.TextField(blank=True)
     slug = models.SlugField(unique=True)
-
-
-    # def save(self, *args, **kwargs):
-    #     if not self.slug:
-    #         if self.product_model:
-    #             self.slug = self.product_model.replace(' ','-').lower()
-    #         else:
-    #             self.slug = self.name.replace(' ', '-').lower()
-    #     super(Product, self).save(*args, **kwargs)
 
 
     def __str__(self):
@@ -42,20 +33,42 @@ class Product(models.Model):
 class Stock(models.Model):
     product= models.OneToOneField(Product, on_delete=models.CASCADE)
     min_stock_level = models.PositiveIntegerField(default=10)
+    new_stock_shippment = models.PositiveIntegerField(default=0)
     total_stock = models.PositiveIntegerField(default=0)   
-    current_quantity = models.PositiveIntegerField(blank=True, null=True)
+    # DISPLAY / FILTER FIELD (persistent)
+    last_shipment_qty = models.PositiveIntegerField(default=0)
+    current_quantity = models.PositiveIntegerField(default=0)
     location = models.CharField(max_length=100, default="ABM Warehouse")
 
     def is_low_stock(self):
         return self.current_quantity <= self.min_stock_level
     
+    # def save(self, *args, **kwargs):
+    #     if self._state.adding:
+    #         self.current_quantity = self.total_stock
+    #     super().save(*args, **kwargs)
+
+    # def __str__(self):
+    #     return f"{self.product.name} - {self.total_stock}"
     def save(self, *args, **kwargs):
-        if self._state.adding:
+        if self.pk:  
+            # existing stock → add new shipment
+            self.total_stock = self.current_quantity + self.new_stock_shippment
             self.current_quantity = self.total_stock
+            self.last_shipment_qty = self.new_stock_shippment
+        else:
+            # first time creation
+            self.total_stock = self.new_stock_shippment
+            self.current_quantity = self.total_stock
+            self.last_shipment_qty = self.new_stock_shippment
+
+        # reset shipment so it doesn't re-add next save
+        self.new_stock_shippment = 0
+
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product.name} - {self.total_stock}"
+        return f"{self.product.name} - {self.current_quantity}"
 # Stock End
 
 # Order Start
@@ -67,9 +80,14 @@ class Order(models.Model):
         ('dispatched','Dispatched'), 
         ('delivered','Delivered'),
     ]
+    PAYMENT_MODES = [
+        ('cash','Cash'),
+        ('upi','UPI'),
+        ('card','Card'),
+        ('bank transfer','Bank Transfer'),
+    ]
 
-
-    dealer = models.ForeignKey(Dealer, on_delete=models.PROTECT, related_name='dealer_orders', limit_choices_to={'user__role':'dealer'})
+    dealer = models.ForeignKey(Dealer, on_delete=models.SET_NULL, null=True, blank=True, related_name='dealer_orders', limit_choices_to={'user__role':'dealer'})
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='orders', null=True, blank=True)
 
     sales_person = models.ForeignKey(
@@ -103,7 +121,12 @@ class Order(models.Model):
 
     order_date = models.DateField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')
-
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODES,
+        null=True,
+        blank=True
+    )
     # Storing Total 
     sub_total = models.DecimalField(max_digits=12, decimal_places=2,default=0)
     tax_total = models.DecimalField(max_digits=12, decimal_places=2,default=0)

@@ -5,13 +5,16 @@ from erp.models import OrderItem
 from accounts.models import Dealer
 
 class ServiceRequestForm(forms.ModelForm):
+
     order_item = forms.ModelChoiceField(
         queryset=OrderItem.objects.none(),
         label='Select delivered product',
-        required=True
+        required=False
     )
 
+    # NEW: allow manual entry if no order selected
     purchase_date = forms.DateField(
+        required=False,
         widget=forms.DateInput(
             attrs={
                 'type': 'date',
@@ -24,8 +27,17 @@ class ServiceRequestForm(forms.ModelForm):
         model = ServiceRequest
         fields = [
             'order_item',
+            'product_name',
+            'product_model',
             'product_serial',
+            'full_name',
+            'company_name',
+            'gstin',
+            'phone',
             'purchase_date',
+            'payment_mode',
+            'warranty',
+            'proof_of_warranty',
             'issue_desc',
             'issue_image',
             'issue_video'
@@ -34,15 +46,32 @@ class ServiceRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
+        self.fields['product_model'].required = False
+        required_fields = [
+            'product_name',
+            'product_serial',
+            'full_name',
+            'company_name',
+            'phone',
+        ]
 
-        # Add CSS classes
-        for field in self.fields.values():
-            css = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
-            field.widget.attrs.update({'class': css})
+        for field in required_fields:
+            self.fields[field].required = True
+
+        # CSS 
+        for name, field in self.fields.items():
+            if field.widget.__class__ == forms.CheckboxInput:
+                field.widget.attrs.update({'class': 'form-check-input'})
+            else:
+                css = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
+                field.widget.attrs.update({'class': css})
+
+        # Hide payment mode initially
+        # self.fields['payment_mode'].widget.attrs['style'] = 'display:none'
 
         order_filter = {'order__status': 'delivered'}
 
-        # Filter based on user role
+        # Role-based filtering (UNCHANGED)
         if self.user.role == 'dealer':
             try:
                 dealer = self.user.dealer_profile
@@ -51,10 +80,7 @@ class ServiceRequestForm(forms.ModelForm):
                 self.fields['order_item'].queryset = OrderItem.objects.none()
                 return
 
-        elif self.user.role == 'employee' and self.user.sub_employee_role == 'sales':
-            order_filter['order__created_by'] = self.user
-
-        elif self.user.role == 'employee' and self.user.sub_employee_role == 'service':
+        elif self.user.role == 'employee' and self.user.sub_employee_role in ['sales', 'service']:
             order_filter['order__created_by'] = self.user
 
         elif self.user.role == 'admin':
@@ -69,29 +95,74 @@ class ServiceRequestForm(forms.ModelForm):
             .filter(**order_filter)
             .select_related('order', 'product')
         )
+
         self.fields['order_item'].label_from_instance = self.order_item_label
 
+    # Custom dropdown label (UNCHANGED)
     def order_item_label(self, obj):
+        order = obj.order
         product = obj.product
-        if product.product_model:
-            return f"{product.name} ({product.product_model})"
-        return product.name
 
+        customer = (
+            order.company_name
+            or order.full_name
+        )
+        order_date = order.order_date.strftime('%d-%b-%Y') if order.order_date else ''
+
+        return (
+            f"Order #{order.id} | "
+            f"{product.name}"
+            f"{f' ({product.product_model})' if product.product_model else ''} | "
+            f"{customer} | "
+            f"{order_date}"
+        )
+
+    # Serial duplication check (UNCHANGED)
     def clean_product_serial(self):
         serial = self.cleaned_data.get('product_serial')
-        if ServiceRequest.objects.filter(product_serial__iexact=serial).exists():
+
+        if not serial:
+            return serial
+
+        active_service_exists = ServiceRequest.objects.filter(
+            product_serial__iexact=serial
+        ).exclude(status='closed').exists()
+
+        if active_service_exists:
             raise forms.ValidationError(
-                "Service request already exists for this product serial number."
+                "Service request already raised for this product. "
+                "Please close the existing service before creating a new one."
             )
         return serial
 
+    #validation
+    def clean(self):
+        data = super().clean()
+
+        if not data.get('order_item'):
+            required_fields = ['product_name', 'product_model', 'product_serial', 'full_name', 'phone']
+            for f in required_fields:
+                if not data.get(f):
+                    self.add_error(f, "This field is required when no delivered product is selected.")
+
+        if not data.get('warranty'):
+      
+            if not data.get('payment_mode'):
+                raise forms.ValidationError("Payment mode is required for non-warranty service.")
+
+        return data
+    
+
+    # Save logic (extended, not replaced)
     def save(self, commit=True):
         instance = super().save(commit=False)
-        order_item = self.cleaned_data['order_item']
+        order_item = self.cleaned_data.get('order_item')
 
-        instance.order = order_item.order
-        instance.product_name = order_item.product.name
-        instance.product_model = order_item.product.product_model
+        if order_item:
+            instance.order = order_item.order
+            instance.product_name = order_item.product.name
+            instance.product_model = order_item.product.product_model
+
         instance.raised_by = self.user
 
         if commit:

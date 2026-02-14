@@ -12,338 +12,355 @@
         <div class="header-title">
           <h4>Order Detail</h4>
         </div>
+        <a href="{% url 'order_list' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded gray-btn">Back</a>
       </div>
 
-      <!-- ORDER + CUSTOMER INFO -->
-      <div class="mdc-card mb-3 p-3">
-         <div class="header-title mb-3">
-                  <h5>Customer/Billing Information</h5>
+      <div class="row">
+        <!-- ORDER + CUSTOMER INFO -->
+          <div class="col-12">
+              <div class="mdc-card mb-3 p-3">
+                <div class="header-title mb-3">
+                    <h5>Customer/Billing Information</h5>
                 </div>
-        <table class="table mb-0">
-          <tr>
-            <th>Order ID:</th>
-            <td>#PO000{{ order.id }}</td>
+                <div class="table-responsive">
+                  <table class="table mb-0">
+                  <tr>
+                    <th>Order ID:</th>
+                    <td>#{{ order.id }}.</td>
+                    <th>Order Date:</th>
+                    <td>{{ order.order_date }}</td>
+                  </tr>
+                  <tr>
+                    <th>Customer:</th>
+                    <td>{{ order.full_name }}</td>
+                    <th>Company:</th>
+                    <td>{{ order.company_name }}</td>
+                  </tr>
+                  <tr>
+                    <th>GSTIN:</th>
+                    <td>{{ order.gstin }}</td>
+                    <th>Email:</th>
+                    <td>{{ order.email }}</td>
+                  </tr>
+                  <tr>
+                    <th>Phone:</th>
+                    <td>{{ order.phone }}</td>
+                    <th>Payment Mode:</th>
+                    <td>{{ order.payment_mode }}</td>
+                  </tr>
+                  <tr>
 
-            <th>Order Date:</th>
-            <td>{{ order.order_date }}</td>
-          </tr>
+                    <th>Status:</th>
+                    <td>
+                      {% if request.user.role == 'admin' or request.user.sub_employee_role == 'dispatch' %}
+                      <form action="{% url 'update_order_status' order.pk %}" method="POST">
+                        {% csrf_token %}
+                        <select name="status"
+                                class="form-control form-select"
+                                onchange="this.form.submit()">
 
-          <tr>
-            <th>Customer:</th>
-            <td>{{ order.full_name }}</td>
-
-            <th>Company:</th>
-            <td>{{ order.company_name }}</td>
-          </tr>
-
-          <tr>
-            <th>GSTIN:</th>
-            <td>{{ order.gstin }}</td>
-
-            <th>Email:</th>
-            <td>{{ order.email }}</td>
-          </tr>
-
-          <tr>
-            <th>Phone:</th>
-            <td>{{ order.phone }}</td>
-
-            <th>Status:</th>
-            <td>
-              {% if request.user.role == 'admin' or request.user.sub_employee_role == 'dispatch' %}
-              <form action="{% url 'update_order_status' order.pk %}" method="POST">
-                {% csrf_token %}
-                <select name="status"
-                        class="form-control form-select"
-                        onchange="this.form.submit()">
-
-                  {% for value, label in order.ORDER_STATUS %}
-                  <option value="{{ value }}"
-                    {% if order.status == value %}selected{% endif %}
-                    {% if order.status == 'approved' and value in 'pending rejected' %}disabled{% endif %}
-                    {% if order.status == 'dispatched' and value != 'delivered' %}disabled{% endif %}
-                  >
-                    {{ label }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </form>
-              {% else %}
-              <span class="badge
-                {% if order.status == 'pending' %}bg-warning
-                {% elif order.status == 'approved' %}bg-primary
-                {% elif order.status == 'rejected' %}bg-danger
-                {% elif order.status == 'dispatched' %}bg-info
-                {% elif order.status == 'delivered' %}bg-success
-                {% endif %}">
-                {{ order.get_status_display }}
-              </span>
-              {% endif %}
-            </td>
-          </tr>
-        </table>
-      </div>
-      <!-- ADDRESS SECTION -->
-      <div class="mdc-card mb-3 p-3">
-        <div class="row">
-          <div class="col-md-6">
-             <div class="header-title mb-3">
-                  <h5>Shipping Address</h5>
+                          {% for value, label in order.ORDER_STATUS %}
+                          <option value="{{ value }}"
+                            {% if order.status == value %}selected{% endif %}
+                            {% if order.status == 'approved' and value in 'pending rejected' %}disabled{% endif %}
+                            {% if order.status == 'dispatched' and value != 'delivered' %}disabled{% endif %}>
+                            {{ label }}
+                          </option>
+                          {% endfor %}
+                        </select>
+                      </form>
+                      {% else %}
+                      <span class="badge
+                        {% if order.status == 'pending' %}bg-warning
+                        {% elif order.status == 'approved' %}bg-primary
+                        {% elif order.status == 'rejected' %}bg-danger
+                        {% elif order.status == 'dispatched' %}bg-info
+                        {% elif order.status == 'delivered' %}bg-success
+                        {% endif %}">
+                        {{ order.get_status_display }}
+                      </span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                </table>
                 </div>
-            <p class="mb-0">
-              {{ order.shipp_building }},
-              {{ order.shipp_city }},
-              {{ order.shipp_state }} - {{ order.shipp_zip }}<br>
-              {{ order.shipp_country }}
-            </p>
+              </div>
           </div>
-
-          {% if order.shipp_building != order.bill_building or order.shipp_city != order.bill_city %}
-          <div class="col-md-6">
-            <div class="header-title mb-3">
-               <h5>Billing Address</h5>
+        <!-- ADDRESS SECTION -->
+          <div class="col-12">
+              <div class="mdc-card mb-3 p-3">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="header-title mb-3">
+                        <h5>Shipping Address</h5>
+                      </div>
+                  <p class="mb-0">
+                    {{ order.shipp_building }},
+                    {{ order.shipp_city }},
+                    {{ order.shipp_state }} - {{ order.shipp_zip }}<br>
+                    {{ order.shipp_country }}
+                  </p>
                 </div>
-            <p class="mb-0">
-              {{ order.bill_building }},
-              {{ order.bill_city }},
-              {{ order.bill_state }} - {{ order.bill_zip }}<br>
-              {{ order.bill_country }}
-            </p>
+
+                {% if order.shipp_building != order.bill_building or order.shipp_city != order.bill_city %}
+                <div class="col-md-6">
+                  <div class="header-title mb-3">
+                    <h5>Billing Address</h5>
+                      </div>
+                  <p class="mb-0">
+                    {{ order.bill_building }},
+                    {{ order.bill_city }},
+                    {{ order.bill_state }} - {{ order.bill_zip }}<br>
+                    {{ order.bill_country }}
+                  </p>
+                </div>
+                {% endif %}
+              </div>
+              </div>
           </div>
-          {% endif %}
-        </div>
-      </div>
-   <div class="mdc-card mb-3">
-    <div class="card-title">
-        <h5>Order Created By</h5>
-    </div>
+        {% if order.creator_display %}
+          <div class="col-12">
+              <div class="mdc-card mb-3">
+                <div class="card-title">
+                    <h5>Order Created By</h5>
+                </div>
 
-  {% if order.creator_display %}
-  <div class="table-responsive">
-    <table class="table modify-table">
-      <tr class="pb-2">
-        <th class="bg-light">Type:</th>
-        <td>{{ order.creator_display.type }}</td>
-      </tr>
-      <tr class="pb-2">
-        <th class="bg-light">Name:</th>
-        <td>{{ order.creator_display.name }}</td>
-      </tr>
-      <tr class="pb-2">
-        <th class="bg-light">Company:</th>
-        <td>{{ order.creator_display.company }}</td>
-      </tr>
-      <tr>
-        <th class="bg-light">Email:</th>
-        <td>{{ order.creator_display.email }}</td>
-      </tr>
-      <tr class="pb-2">
-        <th class="bg-light">Phone:</th>
-        <td>{{ order.creator_display.phone }}</td>
-      </tr>
-      {% if order.creator_display.gstin %}
-      <tr class="pb-2">
-        <th class="bg-light">GSTIN:</th>
-        <td>{{ order.creator_display.gstin }}</td>
-      </tr>
-      {% endif %}
-    </table>
-  </div>
-  {% endif %}
+            
+                <div class="table-responsive">
+                  <table class="table modify-table">
+                    <tr class="pb-2">
+                      <th class="bg-light">Type:</th>
+                      <td>{{ order.creator_display.type }}</td>
+                    </tr>
+                    <tr class="pb-2">
+                      <th class="bg-light">Name:</th>
+                      <td>{{ order.creator_display.name }}</td>
+                    </tr>
+                    <tr class="pb-2">
+                      <th class="bg-light">Company:</th>
+                      <td>{{ order.creator_display.company }}</td>
+                    </tr>
+                    <tr>
+                      <th class="bg-light">Email:</th>
+                      <td>{{ order.creator_display.email }}</td>
+                    </tr>
+                    <tr class="pb-2">
+                      <th class="bg-light">Phone:</th>
+                      <td>{{ order.creator_display.phone }}</td>
+                    </tr>
+                    {% if order.creator_display.gstin %}
+                    <tr class="pb-2">
+                      <th class="bg-light">GSTIN:</th>
+                      <td>{{ order.creator_display.gstin }}</td>
+                    </tr>
+                    {% endif %}
+                  </table>
+                </div>
+              
+              </div>
+          </div>
+        {% endif %}
 
-</div>
+        <!-- TRACKING DETAILS -->
+         {% if order.status != 'rejected' %}
+            {% if request.user.role == 'admin' or request.user.sub_employee_role == 'dispatch' %}
+              <div class="col-12">
+                  <div class="mdc-card mb-3 p-3">
+                    <h5 class="mb-3">Tracking Details</h5>
 
+                    {% if not order.tracking_number %}
+                    <form method="post" action="{% url 'update_order_tracking' order.id %}">
+                      {% csrf_token %}
+                      <div class="row">
+                        <div class="col-md-5">
+                          <label>Courier Name</label>
+                          <input type="text"
+                                name="courier"
+                                class="form-control"
+                                placeholder="Courier Name">
+                        </div>
 
+                        <div class="col-md-5">
+                          <label>Tracking Number</label>
+                          <input type="text"
+                                name="tracking_number"
+                                class="form-control"
+                                placeholder="Tracking ID">
+                        </div>
 
-      <!-- TRACKING DETAILS -->
-       {% if request.user.role == 'admin' or request.user.sub_employee_role == 'dispatch' %}
-      <div class="mdc-card mb-3 p-3">
-        <h5 class="mb-3">Tracking Details</h5>
-
-         {% if not order.tracking_number %}
-        <form method="post" action="{% url 'update_order_tracking' order.id %}">
-          {% csrf_token %}
-          <div class="row">
-            <div class="col-md-5">
-              <label>Courier Name</label>
-              <input type="text"
-                     name="courier"
-                     class="form-control"
-                     placeholder="Courier Name">
+                        <div class="col-md-2 d-flex align-items-end">
+                          <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                    
+                      {% else %}
+                      <div class="table-responsive">
+                        <table class="table modify-table">
+                          <tr class="pb-2">
+                            <th class="bg-light">Courier</th>
+                            <td>{{ order.courier }}</td>
+                          </tr>
+                          <tr class="pb-2">
+                            <th class="bg-light">Tracking No</th>
+                            <td>{{ order.tracking_number }}</td>
+                          </tr>
+                        </table>
+                      </div>
+                      
+                      {% endif %}
+                  </div>
+              </div>
+            {% else %}
+            <div class="col-12">
+                <div class="mdc-card mb-3 p-3">
+                  <h5 class="mb-3">Tracking Details</h5>
+                  
+                    {% if order.tracking_number %}
+                      <div class="table-responsive">
+                      <table class="table modify-table">
+                        <tr class="pb-2">
+                          <th class="bg-light">Courier</th>
+                          <td>{{ order.courier }}</td>
+                        </tr>
+                        <tr class="pb-2">
+                          <th class="bg-light">Tracking No</th>
+                          <td>{{ order.tracking_number }}</td>
+                        </tr>
+                      </table>
+                    </div>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">
+                        Tracking not added yet
+                      </span>
+                    {% endif %}
+                </div>
             </div>
-
-            <div class="col-md-5">
-              <label>Tracking Number</label>
-              <input type="text"
-                     name="tracking_number"
-                     class="form-control"
-                     placeholder="Tracking ID">
-            </div>
-
-            <div class="col-md-2 d-flex align-items-end">
-              <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
-                Save
-              </button>
-            </div>
-          </div>
-        </form>
-        
-          {% else %}
-          <div class="table-responsive">
-            <table class="table modify-table">
-              <tr class="pb-2">
-                <th class="bg-light">Courier</th>
-                <td>{{ order.courier }}</td>
-              </tr>
-              <tr class="pb-2">
-                <th class="bg-light">Tracking No</th>
-                <td>{{ order.tracking_number }}</td>
-              </tr>
-            </table>
-          </div>
-          
+            {% endif %}
           {% endif %}
-      </div>
-      {% else %}
-      <div class="mdc-card mb-3 p-3">
-        <h5 class="mb-3">Tracking Details</h5>
-        
-          {% if order.tracking_number %}
-            <div class="table-responsive">
-            <table class="table modify-table">
-              <tr class="pb-2">
-                <th class="bg-light">Courier</th>
-                <td>{{ order.courier }}</td>
-              </tr>
-              <tr class="pb-2">
-                <th class="bg-light">Tracking No</th>
-                <td>{{ order.tracking_number }}</td>
-              </tr>
-            </table>
-          </div>
-          {% else %}
-            <span class="badge bg-warning text-dark">
-              Tracking not added yet
-            </span>
-          {% endif %}
-      </div>
-      {% endif %}
 
-<div class="mdc-card">
-  <div class="header-title mb-3">
-    <h5>Order Status</h5>
-  </div>
+        {#=======================Order Status========================#}
+        <div class="col-12">
+            <div class="mdc-card">
+              <div class="header-title mb-3">
+                <h5>Order Status</h5>
+              </div>
 
-  <div class="timeline-wrapper mb-3">
-    <div class="timeline">
+              <div class="timeline-wrapper mb-3">
+                <div class="timeline">
 
-      <!-- PENDING -->
-      <div class="timeline-item active">
-        <div class="timeline-icon"><i class="fa fa-clock-o"></i></div>
-        <div class="timeline-title">Pending</div>
-      </div>
+                  <!-- PENDING -->
+                  <div class="timeline-item active">
+                    <div class="timeline-icon"><i class="fa fa-clock-o"></i></div>
+                    <div class="timeline-title">Pending</div>
+                  </div>
 
-      <!-- APPROVED -->
-      <div class="timeline-item
-        {% if order.status == 'approved' or order.status == 'dispatched' or order.status == 'delivered' %}
-          active
-        {% endif %}">
-        <div class="timeline-icon"><i class="fa fa-check-circle"></i></div>
-        <div class="timeline-title">Approved</div>
-      </div>
+                  <!-- REJECTED -->
+                  {% if order.status == 'rejected' %}
+                  <div class="timeline-item active">
+                    <div class="timeline-icon bg-danger"><i class="fa fa-times-circle"></i></div>
+                    <div class="timeline-title">Rejected</div>
+                  </div>
+                  {% else %}
+                  <!-- APPROVED -->
+                  <div class="timeline-item
+                    {% if order.status == 'approved' or order.status == 'dispatched' or order.status == 'delivered' %}
+                      active
+                    {% endif %}">
+                    <div class="timeline-icon"><i class="fa fa-check-circle"></i></div>
+                    <div class="timeline-title">Approved</div>
+                  </div>
 
-      <!-- REJECTED -->
-      {% if order.status == 'rejected' %}
-      <div class="timeline-item active">
-        <div class="timeline-icon"><i class="fa fa-times-circle"></i></div>
-        <div class="timeline-title">Rejected</div>
-      </div>
-      {% endif %}
+                  <!-- DISPATCHED -->
+                  <div class="timeline-item
+                    {% if order.status == 'dispatched' or order.status == 'delivered' %}
+                      active
+                    {% endif %}">
+                    <div class="timeline-icon"><i class="fa fa-truck"></i></div>
+                    <div class="timeline-title">Dispatched</div>
+                  </div>
 
-      <!-- DISPATCHED -->
-      <div class="timeline-item
-        {% if order.status == 'dispatched' or order.status == 'delivered' %}
-          active
-        {% endif %}">
-        <div class="timeline-icon"><i class="fa fa-truck"></i></div>
-        <div class="timeline-title">Dispatched</div>
-      </div>
+                  <!-- DELIVERED -->
+                  <div class="timeline-item
+                    {% if order.status == 'delivered' %}
+                      active
+                    {% endif %}">
+                    <div class="timeline-icon"><i class="fa fa-flag-checkered"></i></div>
+                    <div class="timeline-title">Delivered</div>
+                  </div>
+                  
+                  {% endif %}
 
-      <!-- DELIVERED -->
-      <div class="timeline-item
-        {% if order.status == 'delivered' %}
-          active
-        {% endif %}">
-        <div class="timeline-icon"><i class="fa fa-flag-checkered"></i></div>
-        <div class="timeline-title">Delivered</div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-
-      <!-- ITEMS -->
-      
-      <div class="mdc-card mt-3">
-        <div class="header-title mb-3">
-          <h5>Order Items</h5>
+                </div>
+              </div>
+            </div>
         </div>
-        <div class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th class="text-center">Qty</th>
-                <th class="text-end">Unit Price</th>
-                <th class="text-center">Tax %</th>
-                <th class="text-end">Sub Total</th>
-                <th class="text-end">Tax Amount</th>
-                <th class="text-end">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in order.items.all %}
-              <tr>
-                <td>
-                  {% if item.product.product_model %}{{ item.product.product_model }}{% endif %}
-                  {{ item.product.name }}
-                </td>
-                <td class="text-center">{{ item.qty }}</td>
-                <td class="text-end">{{ item.unit_price|floatformat:2 }}</td>
-                <td class="text-center">{{ item.gst_rate|floatformat:0 }}%</td>
-                <td class="text-end">{{ item.base_amount|floatformat:2 }}</td>
-                <td class="text-end">{{ item.gst_amount|floatformat:2 }}</td>
-                <td class="text-end">{{ item.total_amount|floatformat:2 }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <!-- TOTALS -->
-      
-      <div class="mdc-card mt-3">
-        <div class="header-title mb-2">
-          <h5>Order Summary</h5>
+        <!-- ITEMS -->
+        <div class="col-12">
+            <div class="mdc-card mt-3">
+              <div class="header-title mb-3">
+                <h5>Order Items</h5>
+              </div>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Unit Price</th>
+                      <th>Tax(%)</th>
+                      <th>Subtotal</th>
+                      <th>GST</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                      <td>
+                        {% if item.product.product_model %}{{ item.product.product_model }}{% endif %}
+                        {{ item.product.name }}
+                      </td>
+                      <td>{{ item.qty }}</td>
+                      <td>{{ item.unit_price|floatformat:2 }}</td>
+                      <td>{{ item.gst_rate|floatformat:0 }}%</td>
+                      <td><strong>₹</strong>{{ item.base_amount|floatformat:2 }}</td>
+                      <td><strong>₹</strong>{{ item.gst_amount|floatformat:2 }}</td>
+                      <td><strong>₹</strong>{{ item.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
         </div>
-        <table class="table">
-          <tr>
-            <th>Sub Total:</th>
-            <td class="text-end">{{ order.sub_total|floatformat:2 }}</td>
-          </tr>
-          <tr>
-            <th>Tax Total:</th>
-            <td class="text-end">{{ order.tax_total|floatformat:2 }}</td>
-          </tr>
-          <tr class="fw-bold">
-            <th>Grand Total:</th>
-            <td class="text-end">{{ order.grand_total|floatformat:2 }}</td>
-          </tr>
-        </table>
-      </div>
 
+        <!-- TOTALS -->
+        <div class="col-12">
+            <div class="mdc-card mt-3">
+              <div class="header-title mb-2">
+                <h5>Order Summary</h5>
+              </div>
+              <table class="table">
+                <tr>
+                  <th>Sub Total:</th>
+                  <td class="text-end"><strong>₹</strong>{{ order.sub_total|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                  <th>Tax Total:</th>
+                  <td class="text-end"><strong>₹</strong>{{ order.tax_total|floatformat:2 }}</td>
+                </tr>
+                <tr class="fw-bold">
+                  <th>Grand Total:</th>
+                  <td class="text-end"><strong>₹</strong>{{ order.grand_total|floatformat:2 }}</td>
+                </tr>
+              </table>
+            </div>
+        </div>    
+      </div>
     </div>
   </main>
 </div>

@@ -39,6 +39,21 @@ p {
 /* TOP BAR END */
 
 /* sidebar-start */
+.mdc-drawer .mdc-drawer__header {
+    padding: 1rem;
+    margin: 0;
+}
+.mdc-drawer .mdc-drawer__header .brand-logo {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0.625rem;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.brand-logo img {
+    width: 4rem;
+    height: auto;
+}
 a.brand-logo {
     color: #fff;
     font-size: 1.25rem;
@@ -82,6 +97,10 @@ a.brand-logo {
 .main-title {
     font-size: 3.75rem;
     line-height: 1;
+    color: #fff;
+}
+.login-bg .mdc-typography--headline3 {
+    color: #fff;
 }
 .card-style {
     background: none;
@@ -149,18 +168,27 @@ a.brand-logo {
 .mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item .mdc-expansion-panel-link, .mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item .mdc-drawer-link, .mdc-drawer .mdc-drawer__content .user-info p, a.brand-logo {
     color: #1b1a1a;
 }
-.mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item .mdc-drawer-link.active {
-    background: #edf2fa;
+.mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item a.mdc-expansion-panel-link.active {
     color: #0068b2;
+    background: #edf2fa;
+}
+.mdc-list-item.mdc-drawer-item .mdc-expansion-panel .mdc-list .mdc-drawer-link.active {
+    color: #0068b2;
+    background: none !important;
+}
+.mdc-drawer .mdc-drawer__content .mdc-drawer-menu .mdc-drawer-item .mdc-drawer-link.active {
+    color: #0068b2;
+    background: #edf2fa;
 }
 .mdc-drawer .mdc-drawer__content .profile-actions a {
     color: #0068b2;
 }
-.quick-actions .mdc-card {
+.quick-actions .mdc-card, .quick-actions {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between !important;
 }
+
 /* aside-sidebar-end */
 
 /* main-content-dashboard-start */
@@ -216,11 +244,12 @@ a.brand-logo {
 .body-wrapper .main-wrapper .page-wrapper {
     background: #edf2fa;
 }
-.quick-actions .mdc-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+.body-wrapper .main-wrapper .page-wrapper.login-bg {
+    background-image: url('/static/assets/images/login-bg.png');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
+
 .font-icon {
     font-size: 1.5rem;
     border-radius: 50%;
@@ -237,9 +266,7 @@ a.brand-logo {
 .quick-actions a {
     color: #0068b2;
 }
-.quick-actions a:hover {
-    text-decoration: underline;
-}
+
 .mdc-button {
     width: auto;
 }
@@ -247,7 +274,10 @@ a.brand-logo {
  .modal-dialog {
     transform: none;
     width: 100%;
-    max-width: 45%;
+    max-width: 70%;
+    margin: auto;
+    margin-top: 2rem;
+    padding: 1rem;
 }
 /* form-start */
 .login-form p {
@@ -259,11 +289,22 @@ a.brand-logo {
 .form-label, .form-control {
     font-size: 0.875rem;
 }
+.form-control[readonly] {
+    background: #eeeeee;
+    color: #645e5e;
+    border: 0.0625rem solid #eeeeee;
+    cursor: auto;
+}
+
 .modal-footer {
     border-top: 0;
+    justify-content: space-between;
 }
 /* form-end */
 /* table-css */
+table tbody tr td{
+  vertical-align: middle;
+}
 .modify-table th {
     width: 5rem;
     border-bottom: 0.0625rem solid #fff;
@@ -275,8 +316,10 @@ a.brand-logo {
 tbody, td, tfoot, th, thead, tr {
     text-align: left !important;
 }
-.table tbody tr td {
-    vertical-align: middle;
+table th, table tr {
+    font-size: 0.875rem;
+    padding: 0.875rem 0.625rem !important;
+    vertical-align: top;
 }
 .table tbody tr td:last-child, .table thead tr th:last-child {
     width: 6rem;
@@ -305,6 +348,20 @@ tbody, td, tfoot, th, thead, tr {
 }
 .product-img {
     width: 5rem;
+}
+.mdc-button.mdc-button--raised.rounded.mdc-ripple-upgraded.gray-btn {
+    background: #f2f2f2;
+    color: #212121;
+}
+a.mdc-button.mdc-button--outlined.rounded {
+    color: #0068b2;
+    border-color: #0068b2;
+}
+a.mdc-button.mdc-button--outlined.rounded:hover {
+    background-color: #0068b208;
+}
+.mdc-button::before, .mdc-button::after {
+    background-color: transparent;
 }
 .action .btn {
     padding: 0.05rem 0.5rem;
@@ -341,6 +398,24 @@ tbody, td, tfoot, th, thead, tr {
 .stock-card h4 {
     color: #f59f0a;
 }
+.unit-block {
+    height: 10rem;
+    overflow-y: auto;
+    border: 0.0625rem solid #edf2fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: #edf2fa;
+}
+.unit-stock .stock-product {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+tr:target td  {
+    background-color: #edf2fa;
+}
+
 /* inventory page-end */
 
 /* Error Messages Start*/
@@ -374,6 +449,7 @@ tbody, td, tfoot, th, thead, tr {
     text-align: center;
     position: relative;
     flex: 1;
+    margin-bottom: 2rem;
 }
 
 .timeline-item:not(:last-child)::after {
@@ -422,4 +498,80 @@ tbody, td, tfoot, th, thead, tr {
     font-size: 0.75rem;
     color: #374151;
 }
-/* status-log-end *
+/* status-log-end */
+/* Service Video */
+.service-video {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+.issue-image img, .issue-image video {
+    width: 100%;
+}
+.service-title {
+    padding: 1rem 1.125rem;
+    background: #f2f2f2;
+    color: #212121;
+}
+.service-wrapper:not(:last-child) .service-title {
+    border-top-right-radius: 0.5rem;
+    border-top-left-radius: 0.5rem;
+}
+.person-detail {
+    padding: 0.625rem 1.125rem;
+}
+.person-detail span .fa {
+    color: #0068b2;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+span.badge.bg-secondary {
+    background: #989898 !important;
+}
+/* Service Video End */
+
+/* pagination */
+.pagination .page-item.active .page-link {
+    background: #0068b2;
+    border-color: #0068b2;
+    color: #fff;
+}
+.pagination .page-item.disabled .page-link {
+    color: #b8b3b3;
+}
+.pagination .page-item .page-link {
+    color: #0068b2;
+}
+.page-link:focus {
+    box-shadow: none;
+}
+
+/* pagination */
+
+/* Responsive Code Start */
+/* Modal */
+@media (max-width: 767px) {
+    .modal-dialog {
+        max-width: 100%;
+        margin-top: 1rem;
+    }
+    .mdc-button {
+    line-height: 1;
+    padding: 0.5rem 0.625rem;
+    margin: 0;
+    }
+    .margin-bottom {
+        margin-bottom: 1.5rem;
+    }
+ 
+}
+@media (max-width: 400px) {
+    .table thead tr th {
+    font-size: 0.75rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+    
+}
+/* Responsive Code End */
+

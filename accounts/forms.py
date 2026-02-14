@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from accounts.models import User
+from accounts.models import User, Dealer
 
 
 class CreateUserForm(UserCreationForm):
@@ -93,4 +93,41 @@ class LoginForm(forms.Form):
     #     self.fields['role'].choices = [('', 'select-role')] + list(self.fields['role'].choices)
     #     self.fields['sub_employee_role'].choices = [('', 'sub employee role')] + list(self.fields['sub_employee_role'].choices)    
 
-    
+class DealerForm(forms.ModelForm):
+    same_as_shipping = forms.BooleanField(
+    required=False,
+    label="Billing address same as Shipping"
+    )
+
+    # company details
+    firm_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    gst_number = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    pan_number = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    # Shipping details
+    ship_address_line1 = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ship_address_line2 = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ship_city = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ship_state = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ship_pincode = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ship_country = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    # Billing details
+    bill_address_line1 = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bill_address_line2 = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bill_city = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bill_state = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bill_pincode = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    bill_country = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    class Meta:
+        model = Dealer
+        fields = [
+            'firm_name', 'gst_number', 'pan_number',
+
+            # Shipping Address
+            'ship_address_line1', 'ship_address_line2',
+            'ship_city', 'ship_state', 'ship_pincode', 'ship_country',
+
+            # Billing Address
+            'bill_address_line1', 'bill_address_line2',
+            'bill_city', 'bill_state', 'bill_pincode', 'bill_country',
+            
+        ]    

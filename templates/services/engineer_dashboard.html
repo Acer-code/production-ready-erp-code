@@ -1,0 +1,53 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+{% block content %}
+
+      <!-- main-content-start -->
+      <div class="page-wrapper mdc-toolbar-fixed-adjust">
+        <main class="content-wrapper">
+          <div class="mdc-layout-grid">
+            <h4 class="mb-3">Key Metrics</h4>
+            <div class="mdc-layout-grid__inner">
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <div class="mdc-card info-card bg-pink">
+                  <div class="card-inner">
+                    <h5 class="card-title">Closed Services</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ closed_services }}</h5>
+                    <p class="tx-12 text-muted">{{ closed_services }} Services</p>
+                    <div class="card-icon">
+                      <i class="fa fa-cubes" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <div class="mdc-card info-card bg-purple">
+                  <div class="card-inner">
+                    <h5 class="card-title">Open Service Requests</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ open_service_requests }}</h5>
+                    <p class="tx-12 text-muted">{{ open_service_requests }} Requests</p>
+                    <div class="card-icon">
+                      <i class="fa fa-list" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                <div class="mdc-card info-card bg-green">
+                  <div class="card-inner">
+                    <h5 class="card-title">Assigned Services</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ assigned_services }}</h5>
+                    <p class="tx-12 text-muted">{{ assigned_services }} Services</p>
+                    <div class="card-icon">
+                      <i class="fa fa-cogs" aria-hidden="true"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+      <!-- main-content-end -->
+
+{% endblock %}

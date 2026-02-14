@@ -7,56 +7,90 @@
         <!-- content-block -->
         <main class="content-wrapper">
             <div class="mdc-layout-grid">
-                <div class="header-title mb-3">
+              <div class=" d-flex justify-content-between mb-3">
+                  <div class="header-title">
                     <h4>Add User</h4>
-                </div>
-                <div class="mdc-card">
-                    <form action="{% url 'create_user' %}"method="POST">
-                        {% csrf_token %}
-                      <div class="row">
-                        <div class="mb-3 col-md-6">
-                         <label for="first-name" class="form-label">First Name*</label>
-                          {{form.first_name}}
+                  </div>
+                  <a href="{% url 'user_list' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">View</a>
+              </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mdc-card">
+                            <form action="{% url 'create_user' %}"method="POST">
+                                {% csrf_token %}
+                              <div class="row">
+                                <div class="mb-3 col-md-6">
+                                <label for="first-name" class="form-label">First Name<span class="text-danger">*</span></label>
+                                  {{form.first_name}}
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                  <label for="last-name" class="form-label">Last Name</label>
+                                  {{form.last_name}}
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                    <label for="email-address" class="form-label">Email<span class="text-danger">*</span></label>
+                                    {{form.email}}
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                    <label for="phone-number" class="form-label">Phone Number<span class="text-danger">*</span></label>
+                                    {{form.phone}}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="company" class="form-label">Company<span class="text-danger">*</span></label>
+                                    {{form.company}}
+                                </div>
+                                <div class="mb-3 col-md-6" id="roleCol">
+                                  <label for="role" class="form-label">Role<span class="text-danger">*</span></label>
+                                  {{form.role}}
+                                </div>
+                                <div class="mb-3 col-md-6" id="subRoleCol">
+                                  <label for="sub-employee-role" class="form-label">Sub Employee Role<span class="text-danger">*</span></label>
+                                  {{form.sub_employee_role}}
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                  <label for="password" class="form-label">Password<span class="text-danger">*</span></label>
+                                  {{form.password1}}
+
+                                </div>
+                                <div class="mb-3 col-md-6">
+                                  <label for="confirm-pswd" class="form-label">Confirm Password<span class="text-danger">*</span></label>
+                                  {{form.password2}}
+                                </div>
+                                <div class="text-center d-flex justify-content-between">
+                                    <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                                    <a href="{% url 'user_list' %}"  class="mdc-button mdc-button--outlined rounded">Cancel</a>
+                                  </div>
+                              </div>
+                            </form>
                         </div>
-                        <div class="mb-3 col-md-6">
-                          <label for="last-name" class="form-label">Last Name</label>
-                          {{form.last_name}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                            <label for="email-address" class="form-label">Email*</label>
-                            {{form.email}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                            <label for="phone-number" class="form-label">Phone Number*</label>
-                            {{form.phone}}
-                        </div>
-                        <div class="mb-3">
-                            <label for="company" class="form-label">Company</label>
-                            {{form.company}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                          <label for="role" class="form-label">Role</label>
-                          {{form.role}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                          <label for="sub-employee-role" class="form-label">Sub Employee Role</label>
-                          {{form.sub_employee_role}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                          <label for="password" class="form-label">Password</label>
-                          {{form.password1}}
-                        </div>
-                        <div class="mb-3 col-md-6">
-                          <label for="confirm-pswd" class="form-label">Confirm Password</label>
-                          {{form.password2}}
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
-                        </div>
-                      </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </main>
       </div>
+      <!-- ROLE BASED FIELD ACCESSABILITY -->
+<script>
+const roleSelect = document.querySelector('select[name="role"]');
+const subRoleCol = document.getElementById('subRoleCol');
+const roleCol = document.getElementById('roleCol');
+
+function toggleSubRole() {
+    if (roleSelect.value === 'employee') {
+        subRoleCol.style.display = 'block';
+        roleCol.classList.remove('col-md-12');
+        roleCol.classList.add('col-md-6');
+    } else {
+        subRoleCol.style.display = 'none';
+        roleCol.classList.remove('col-md-6');
+        roleCol.classList.add('col-md-12');
+    }
+}
+
+// on change
+roleSelect.addEventListener('change', toggleSubRole);
+
+// on page load
+toggleSubRole();
+</script>
+
 {% endblock %}

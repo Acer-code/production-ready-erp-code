@@ -11,9 +11,10 @@ class User(AbstractUser):
     ]
     SUB_EMPLOYEE_CHOICES=[
         ('sales', 'Sales'),
-        ('service','service'),
-        ('inventory', 'inventory'),
-        ('dispatch', 'dispatch'),
+        ('service','Service'),
+        ('engineer','Engineer'),
+        ('inventory', 'Inventory'),
+        ('dispatch', 'Dispatch'),
     ]
     
     username= None
@@ -24,6 +25,7 @@ class User(AbstractUser):
     # email = models.EmailField()
     phone = models.CharField(max_length=10,blank=True)
     company = models.CharField(max_length=100,blank=True)
+    is_suspended = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"             # LOGIN USING EMAIL
     REQUIRED_FIELDS = []                 # No username required

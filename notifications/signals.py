@@ -1,12 +1,11 @@
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from services.models import ServiceRequest
 from erp.models import Product, Stock, Order
 from accounts.models import User
 from .utils import create_notification
-from .recipients import admins_and_directors, all_except_dealers, dispatch_team, service_team
-
+from .recipients import admins_and_directors, dispatch_team, inventory_team, product_notification_users, stock_notification_users
 from django.core.mail import send_mail
 from accounts.models import User
 from django.conf import settings
@@ -23,47 +22,71 @@ def user_display(user):
 # ----------------------------
 # Service Request Notifications
 # ----------------------------
-# @receiver(post_save, sender=ServiceRequest)
-# def service_request_notification(sender, instance, created, **kwargs):
-#     text = f"Service request raised for {instance.product_model} by {user_display(instance.requested_by)}"
-#     create_notification(
-#         service_team(),
-#         title="Service Request",
-#         message=text,
-#         n_type="service",
-#         url=f"/service/{instance.id}/"
-#     )
-
-
 @receiver(post_save, sender=ServiceRequest)
-def service_request_notification(sender, instance, created, **kwargs):
-    """
-    Notify relevant users in-app when a new service request is raised.
-    """
-    if created:
-        service_request = instance
+def service_created_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
 
-        # Message text
-        text = f"Service request raised for {service_request.product_model or ''} {service_request.product_name} by {user_display(service_request.raised_by)}"
+    # Admin & Director always
+    recipients = set(admins_and_directors())
 
-        # Notify all service team members (admins, directors, maybe engineers)
+    # Sales employee who raised it
+    if instance.raised_by.role == "employee" and instance.raised_by.sub_employee_role == "sales":
+        recipients.add(instance.raised_by)
+
+    # Dealer who raised it
+    if instance.raised_by.role == "dealer":
+        recipients.add(instance.raised_by)
+
+    create_notification(
+        users=recipients,
+        title="Service Request Raised",
+        message=f"Service request #{instance.id} raised by {user_display(instance.raised_by)}",
+        n_type="service",
+        url=f"/service/{instance.id}/"
+    )
+
+# Signal for assignment change
+@receiver(pre_save, sender=ServiceRequest)
+def service_assignment_notification(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+
+    old = ServiceRequest.objects.get(pk=instance.pk)
+
+    if old.assigned_engineer != instance.assigned_engineer and instance.assigned_engineer:
         create_notification(
-            users=service_team(),
-            title="New Service Request",
-            message=f"New service request {service_request.id} raised",
-            n_type="service_request",
-            url=f"/service/{service_request.id}/"
+            users=[instance.assigned_engineer],
+            title="Service Assigned",
+            message=f"Service #{instance.id} has been assigned to you",
+            n_type="service",
+            url=f"/service/{instance.id}/"
         )
 
+# Signal for status change
+@receiver(pre_save, sender=ServiceRequest)
+def service_status_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
 
-        # Optionally notify dealer who raised request
-        if service_request.raised_by.role == 'dealer':
-            create_notification(
-                users=[service_request.raised_by],  # put the user in a list
-                title="Service Request Raised",
-                message=f"Your service request SR-{service_request.id} has been successfully raised.",
-                n_type="service",
-                url=f"/service/{service_request.id}/"
+    old = ServiceRequest.objects.get(pk=instance.pk)
+
+    if old.status != instance.status:
+        recipients = set(admins_and_directors())
+
+        # Sales / Dealer who raised it
+        recipients.add(instance.raised_by)
+
+        # Assigned engineer
+        if instance.assigned_engineer:
+            recipients.add(instance.assigned_engineer)
+
+        create_notification(
+            users=recipients,
+            title="Service Status Updated",
+            message=f"Service #{instance.id} status changed from {old.status} → {instance.status}",
+            n_type="service",
+            url=f"/service/{instance.id}/"
         )
 
 
@@ -71,109 +94,126 @@ def service_request_notification(sender, instance, created, **kwargs):
 # Stock Notifications
 # ----------------------------
 @receiver(post_save, sender=Stock)
-def stock_notification(sender, instance, created, **kwargs):
+def stock_notifications(sender, instance, created, **kwargs):
     product_name = instance.product.name
-    model_name = getattr(instance.product, 'product_model', '')
+
+    model_name = instance.product.product_model or ""
     model_text = f" ({model_name})" if model_name else ""
-
-    # Low Stock
     if instance.is_low_stock():
-        text = f"{product_name}{model_text} stock is low ({instance.current_quantity})"
         create_notification(
-            all_except_dealers(),
+            users=stock_notification_users(),
             title="Low Stock Alert",
-            message=text,
+            message=f"{product_name}{model_text} stock is low",
             n_type="stock",
-            url="/inventory/products/"
+            url="/inventory/"
         )
 
-    # Stock Updated
     if not created:
-        text = f"{product_name}{model_text} stock updated to {instance.current_quantity}"
         create_notification(
-            all_except_dealers(),
+            users=stock_notification_users(),
             title="Stock Updated",
-            message=text,
+            message=f"{product_name}{model_text} stock updated",
             n_type="stock",
-            url="/inventory/products/"
+            url="/inventory/"
         )
+
 
 # ----------------------------
 # Product Notifications
 # ----------------------------
 @receiver(post_save, sender=Product)
-def product_notification(sender, instance, created, **kwargs):
+def product_notifications(sender, instance, created, **kwargs):
     product_name = instance.name
     model_name = getattr(instance, 'product_model', '')
     model_text = f" ({model_name})" if model_name else ""
-
-    if created:
-        text = f"New product added: {product_name}{model_text}"
-        create_notification(
-            all_except_dealers(),
-            title="New Product Added",
-            message=text,
-            n_type="product",
-            url="/products/"
-        )
-        # Automatically create Stock record if missing
-        Stock.objects.get_or_create(product=instance)
-    else:
-        text = f"Product updated: {product_name}{model_text}"
-        create_notification(
-            all_except_dealers(),
-            title="Product Updated",
-            message=text,
-            n_type="product",
-            url="/products/"
-        )
+    text = f"New product added: {product_name}{model_text}" if created else f"Product updated: {product_name}{model_text}"
+    create_notification(
+        users=product_notification_users(),
+        title="Product Added" if created else "Product Updated",
+        message=text,
+        n_type="product",
+        url="/products/"
+    )
 
 # ----------------------------
 # Order Notifications
 # ----------------------------
 @receiver(post_save, sender=Order)
-def order_notification(sender, instance, created, **kwargs):
-    order_id = instance.id
-    if created:
-        text = f"New order received: Order #{order_id}"
+def order_created_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    recipients = set(dispatch_team())
+    recipients.update(admins_and_directors())
+
+    # Creator (sales or dealer)
+    if instance.created_by:
+        recipients.add(instance.created_by)
+
+    create_notification(
+        users=recipients,
+        title="New Order Created",
+        message=f"Order #{instance.id} created",
+        n_type="order",
+        url=f"/orders/{instance.id}/"
+    )
+
+@receiver(pre_save, sender=Order)
+def order_status_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+
+    old = Order.objects.get(pk=instance.pk)
+
+    if old.status != instance.status:
+        recipients = set(dispatch_team())
+        recipients.update(admins_and_directors())
+
+        # Dealer
+        if instance.dealer and instance.dealer.user:
+            recipients.add(instance.dealer.user)
+
+        # Sales creator
+        if instance.created_by:
+            recipients.add(instance.created_by)
+
         create_notification(
-            dispatch_team(),
-            title="New Order",
-            message=text,
-            n_type="order",
-            url=f"/orders/{order_id}/"
-        )
-    else:
-        text = f"Order #{order_id} updated. Status: {instance.status}"
-        create_notification(
-            dispatch_team(),
+            users=recipients,
             title="Order Status Updated",
-            message=text,
+            message=f"Order #{instance.id} status changed from {old.status} → {instance.status}",
             n_type="order",
-            url=f"/orders/{order_id}/"
+            url=f"/orders/{instance.id}/"
         )
 
 # ----------------------------
 # User Notifications
 # ----------------------------
 @receiver(post_save, sender=User)
-def user_notification(sender, instance, created, **kwargs):
-    display = user_display(instance)
+def user_created_notification(sender, instance, created, **kwargs):
     if created:
-        text = f"New user registered: {display}"
         create_notification(
             admins_and_directors(),
             title="New User Created",
-            message=text,
+            message=f"New user registered: {user_display(instance)}",
             n_type="user",
             url="/users/"
         )
-    else:
-        text = f"User updated: {display}"
+
+@receiver(pre_save, sender=User)
+def user_profile_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+
+    old = User.objects.get(pk=instance.pk)
+
+    tracked_fields = ["first_name", "last_name", "email", "role", "sub_employee_role"]
+
+    if any(getattr(old, f) != getattr(instance, f) for f in tracked_fields):
         create_notification(
             admins_and_directors(),
-            title="User Updated",
-            message=text,
+            title="User Profile Updated",
+            message=f"User profile updated: {user_display(instance)}",
             n_type="user",
             url="/users/"
         )
+

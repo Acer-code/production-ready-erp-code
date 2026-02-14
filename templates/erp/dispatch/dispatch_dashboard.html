@@ -2,5 +2,51 @@
 {% load static %}
 {% block title %}Dispatch Dashboard{% endblock %}
 {% block content %}
-<h1> Dispatch Dashboard Page </h1>
+ <!-- main-content-start -->
+      <div class="page-wrapper mdc-toolbar-fixed-adjust">
+        <main class="content-wrapper">
+          <div class="mdc-layout-grid">
+            <h4 class="mb-3">Dispatch Overview</h4>
+            <div class="mdc-layout-grid__inner mb-3">
+                <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                    <div class="mdc-card info-card bg-purple">
+                        <div class="card-inner">
+                            <h5 class="card-title">Pending Shipments</h5>
+                            <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ pending_shipments }}</h5>
+                            <p class="tx-12 text-muted">Orders awaiting dispatch</p>
+                            <div class="card-icon">
+                                <i class="fa fa-cube"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                    <div class="mdc-card info-card bg-green">
+                    <div class="card-inner">
+                        <h5 class="card-title">Shipped Today</h5>
+                        <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ shipped_today }}</h5>
+                        <p class="tx-12 text-muted">Successfully dispatched orders</p>
+                        <div class="card-icon">
+                        <i class="fa fa-truck" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
+                    <div class="mdc-card info-card bg-pink">
+                    <div class="card-inner">
+                        <h5 class="card-title">Delayed Orders</h5>
+                        <h5 class="font-weight-light pb-2 mb-1 border-bottom"> {{ delayed_orders }}</h5>
+                        <p class="tx-12 text-muted">Shipments past due date</p>
+                        <div class="card-icon">
+                        <i class="fa fa-exclamation" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    </div>
+                </div> 
+            </div>
+          </div>
+        </main>
+      </div>
+      <!-- main-content-end -->
 {% endblock %}

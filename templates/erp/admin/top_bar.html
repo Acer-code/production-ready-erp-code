@@ -10,105 +10,96 @@
         </button>
         <div class="mdc-menu mdc-menu-surface user-dropdown" tabindex="-1">
             <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
-                <li class="mdc-list-item" role="menuitem" tabindex="-1"> <a href="#"
-                        class="item-subject font-weight-normal"><i
-                            class="mdi mdi-account-edit-outline text-primary"></i>Logout2</a> </li>
-                <!-- <li class="mdc-list-item" role="menuitem"> <div class="item-thumbnail item-thumbnail-icon-only"> <i class="mdi mdi-settings-outline text-primary"></i> </div> <div class="item-content d-flex align-items-start flex-column justify-content-center"> <h6 class="item-subject font-weight-normal">Logout</h6> </div> </li> -->
+                {% if request.user.role == 'dealer' %}
+                <li class="mdc-list-item" role="menuitem" tabindex="-1"> 
+                    <a href="{% url 'edit_dealer_profile' %}" class="item-subject font-weight-normal">
+                        <i class="mdi mdi-account-edit-outline text-primary"></i>Edit Profile</a> 
+                </li>
+                {% endif %}
+                <li class="mdc-list-item" role="menuitem" tabindex="-1"> 
+                    <a href="{% url 'logout' %}" class="item-subject font-weight-normal">
+                        <i class="mdi mdi-logout-variant text-primary"></i>Logout</a> 
+                </li>
+                
             </ul>
         </div>
     </div>
     <div class="divider d-none d-md-block"></div>
-    <div class="menu-button-container d-none d-md-block"> <button class="mdc-button mdc-menu-button"> <i
-                class="mdi mdi-settings"></i> </button>
-        <div class="mdc-menu mdc-menu-surface" tabindex="-1">
-            <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
-                <li class="mdc-list-item" role="menuitem">
-                    <div class="item-thumbnail item-thumbnail-icon-only"> <i
-                            class="mdi mdi-alert-circle-outline text-primary"></i> </div>
-                    <div class="item-content d-flex align-items-start flex-column justify-content-center">
-                        <h6 class="item-subject font-weight-normal">Settings</h6>
-                    </div>
-                </li>
-                <li class="mdc-list-item" role="menuitem">
-                    <div class="item-thumbnail item-thumbnail-icon-only"> <i
-                            class="mdi mdi-progress-download text-primary"></i> </div>
-                    <div class="item-content d-flex align-items-start flex-column justify-content-center">
-                        <h6 class="item-subject font-weight-normal">Update</h6>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div>
+    
     <div class="menu-button-container"> 
 
-    <button type="button"
-        class="mdc-button mdc-menu-button"
-        onclick="openNotifications()">
-        {% if unread_notifications %}
-        <span class="count-indicator">
-            <span class="count">{{ unread_notifications }}</span>
-        </span>
-        {% endif %}
-        <i class="mdi mdi-bell"></i>
-    </button>   
-    <div class="mdc-menu mdc-menu-surface notification-dropdown" tabindex="-1">
-    <h6 class="title">
-        <i class="mdi mdi-bell-outline mr-2 tx-16"></i>
-        Notifications
-    </h6>
+        <button type="button"
+            class="mdc-button mdc-menu-button"
+            onclick="openNotifications()">
+            {% if unread_notifications %}
+            <span class="count-indicator">
+                <span class="count">{{ unread_notifications }}</span>
+            </span>
+            {% endif %}
+            <i class="mdi mdi-bell"></i>
+        </button>   
+        <div class="mdc-menu mdc-menu-surface notification-dropdown" tabindex="-1">
+        <h6 class="title">
+            <i class="mdi mdi-bell-outline mr-2 tx-16"></i>
+            Notifications
+        </h6>
 
-    <ul class="mdc-list" role="menu">
-        {% if top_notifications %}
-            {% for n in top_notifications %}
-                <li class="mdc-list-item {% if not n.is_read %}unread{% endif %}">
-                    <div class="item-thumbnail item-thumbnail-icon">
-                        {% if n.notification_type == 'order' %}
-                            <i class="mdi mdi-cart"></i>
-                        {% elif n.notification_type == 'service' %}
-                            <i class="mdi mdi-tools"></i>
-                        {% elif n.notification_type == 'stock' %}
-                            <i class="mdi mdi-alert-circle-outline"></i>
-                        {% elif n.notification_type == 'product' %}
-                            <i class="mdi mdi-cube-outline"></i>
-                        {% else %}
-                            <i class="mdi mdi-account-outline"></i>
-                        {% endif %}
-                    </div>
+        <ul class="mdc-list" role="menu">
+            {% if top_notifications %}
+                {% for n in top_notifications %}
+                    <li class="mdc-list-item {% if not n.is_read %}unread{% endif %}">
+                        <div class="item-thumbnail item-thumbnail-icon">
+                            {% if n.notification_type == 'order' %}
+                                <i class="mdi mdi-cart"></i>
+                            {% elif n.notification_type == 'service' %}
+                                <i class="mdi mdi-tools"></i>
+                            {% elif n.notification_type == 'stock' %}
+                                <i class="mdi mdi-alert-circle-outline"></i>
+                            {% elif n.notification_type == 'product' %}
+                                <i class="mdi mdi-cube-outline"></i>
+                            {% else %}
+                                <i class="mdi mdi-account-outline"></i>
+                            {% endif %}
+                        </div>
 
-                    <div class="item-content">
-                        <h6 class="item-subject font-weight-normal">
-                            {{ n.title }}
-                        </h6>
-                        <small class="text-muted">
-                            {{ n.created_at|timesince }} ago
-                        </small>
-                    </div>
+                        <div class="item-content">
+                            <h6 class="item-subject font-weight-normal">
+                                {{ n.message}}
+                            </h6>
+                            <small class="text-muted">
+                                {{ n.created_at|timesince }} ago
+                            </small>
+                        </div>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li class="mdc-list-item text-center text-muted">
+                    No notifications
                 </li>
-            {% endfor %}
-        {% else %}
-            <li class="mdc-list-item text-center text-muted">
-                No notifications
-            </li>
-        {% endif %}
-    </ul>
-    </div>
-   
-    </div>
-    
-    <div class="menu-button-container d-none d-md-block"> <button class="mdc-button mdc-menu-button"> <i
-                class="mdi mdi-arrow-down-bold-box"></i> </button>
-        <div class="mdc-menu mdc-menu-surface" tabindex="-1">
-            <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
-                <li class="mdc-list-item" role="menuitem"> <a href="{% url 'logout' %}"><span><i
-                                class="mdi mdi-logout-variant text-primary"></i></span>Logout</a> </li>
-            </ul>
+            {% endif %}
+        </ul>
         </div>
+
     </div>
-    </div>
-    </div>
+    <div class="menu-button-container d-none d-md-block">
+              <button class="mdc-button mdc-menu-button mdc-ripple-upgraded">
+                <i class="mdi mdi-arrow-down-bold-box"></i>
+              </button>
+              <div class="mdc-menu mdc-menu-surface" tabindex="-1">
+                <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
+                  <li class="mdc-list-item" role="menuitem" tabindex="-1">
+                  <li class="mdc-list-item" role="menuitem" tabindex="-1">
+                    <div class="item-content d-flex align-items-start flex-column justify-content-center">
+                      <a href="{% url 'logout' %}" class="item-subject font-weight-normal">
+                        <i class="mdi mdi-logout-variant text-primary"></i>Logout</a> 
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
 
     <script>
-document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
     const bell = document.querySelector('.mdi-bell');
 
     if (bell) {
@@ -121,4 +112,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-</script>
+    </script>

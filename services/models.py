@@ -14,6 +14,19 @@ class ServiceRequest(models.Model):
         ('completed','Completed'),
         ('closed','closed'),
     ]
+    APPROVAL_CHOICES = [
+        ('pending','Pending'),
+        ('approved','Approved'),
+        ('rejected','Rejected'),
+    ]
+
+    PAYMENT_MODES = [
+        ('cash','Cash'),
+        ('upi','UPI'),
+        ('card','Card'),
+        ('bank transfer','Bank Transfer'),
+    ]
+
     # who raise the request (employee/ dealer)
     raised_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='service_requests')
     # order = models.ForeignKey( Order, on_delete=models.PROTECT, related_name='services', null=True, blank=True )
@@ -31,12 +44,17 @@ class ServiceRequest(models.Model):
         null=True,
         blank=True
     )
-    
+    # Customer details (can be auto-filled from order or manually entered)
+    full_name = models.CharField(max_length=150, blank=True, null=True)
+    company_name = models.CharField(max_length=150, blank=True, null=True) 
+    gstin = models.CharField(max_length=50, blank=True, null=True) 
+    phone = models.CharField(max_length=20, blank=True, null=True)
+
     # Product Details
     product_name = models.CharField(max_length=150)
     product_model = models.CharField(max_length=100)
     product_serial = models.CharField(max_length=100)
-    purchase_date = models.DateField()
+    purchase_date = models.DateField(blank=True, null=True)
     
     # Issue/Problem in machine
     issue_desc = models.TextField()
@@ -49,6 +67,15 @@ class ServiceRequest(models.Model):
     assigned_engineer = models.ForeignKey(User, on_delete=models.SET, related_name='assigned_engineer', blank=True, null=True)
 
     warranty = models.BooleanField(default=False)
+    proof_of_warranty = models.FileField(upload_to='service/warranty/', blank=True, null=True)
+    payment_mode = models.CharField(
+        max_length=20,
+        choices=PAYMENT_MODES,
+        null=True,
+        blank=True
+    )
+    approval_status = models.CharField(max_length=20, choices=APPROVAL_CHOICES, default='pending')
+    rejection_reason = models.TextField(blank=True, null=True)
 
     # Tracking service
     created_at = models.DateTimeField(auto_now_add=True)
@@ -60,17 +87,19 @@ class ServiceRequest(models.Model):
         blank=True,
         related_name='service_updates'
     )
+    def is_locked(self):
+        return self.approval_status == 'rejected'
 
     def is_machine_blocked(self):
-
+        if self.status != 'closed':
+            return False
         return ServiceSparePart.objects.filter(
             service_request__product_serial=self.product_serial,
             status__in=['assigned', 'not_returned'],
-            assigned_at__lt=timezone.now() - timedelta(days=7)
+            returned_at__isnull=True,
+            service_request__closure__closed_at__lt=timezone.now() - timedelta(days=7)
         ).exists()
 
-
-    
     @property
     def customer(self):
         """
@@ -82,7 +111,83 @@ class ServiceRequest(models.Model):
         if self.product_model:
             return f" SR-{self.id} | {self.product_model} {self.product_name} | {self.status}"
         return f" SR-{self.id} | {self.product_name} | {self.status}"
+    
+# for multi status stages of spare part request
+class SparePartRequest(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'), 
+        ('requested', 'Requested'),
+        ('dispatched', 'Dispatched'),
+        ('received', 'Received'),
+        ('cancelled', 'Cancelled'),
+    ]
 
+    service_request = models.ForeignKey(
+        ServiceRequest,
+        on_delete=models.CASCADE,
+        related_name='spare_requests'
+    )
+
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={'sub_employee_role': 'service'}
+    )
+
+    part_name = models.CharField(max_length=255)
+    part_number = models.CharField(max_length=100, blank=True, null=True)
+    quantity = models.PositiveIntegerField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+
+    # Admin dispatch info
+    courier_partner = models.CharField(max_length=100, blank=True, null=True)
+    docket_number = models.CharField(max_length=100, blank=True, null=True)
+    dispatched_at = models.DateTimeField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    received_at = models.DateTimeField(blank=True, null=True)
+
+class SparePartReturn(models.Model):
+    STATUS_CHOICES = [
+        ('submitted', 'Submitted'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    service_request = models.ForeignKey(
+        ServiceRequest,
+        on_delete=models.CASCADE,
+        related_name='spare_returns'
+    )
+
+    engineer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={'sub_employee_role': 'service'}
+    )
+    part_name = models.CharField(max_length=255, blank=True, null=True)
+    part_number = models.CharField(max_length=100, blank=True, null=True)
+    quantity = models.PositiveIntegerField(default=1)
+    remark = models.TextField(blank=True, null=True)
+
+    courier_partner = models.CharField(max_length=100)
+    docket_number = models.CharField(max_length=100)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='submitted'
+    )
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(blank=True, null=True)
+
+# for spare parts assigned to service requests
 class ServiceSparePart(models.Model):
     PART_STATUS = (
         ('assigned', 'Assigned'),
@@ -109,12 +214,11 @@ class ServiceSparePart(models.Model):
 
     # cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-    def is_overdue_48hr(self):
-        return self.status == 'assigned' and timezone.now() > self.assigned_at + timedelta(hours=48)
+    def is_overdue_72hr(self):
+        return self.status == 'assigned' and timezone.now() > self.assigned_at + timedelta(hours=72)
 
     def is_overdue_7days(self):
         return self.status != 'returned' and timezone.now() > self.assigned_at + timedelta(days=7)
-
 
 class ServiceLog(models.Model):
     service_request = models.ForeignKey(ServiceRequest, on_delete=models.CASCADE,related_name='service_logs')

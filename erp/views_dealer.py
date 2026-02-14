@@ -7,6 +7,75 @@ from django.contrib import messages
 from .forms import OrderForm, OrderItemForm, ProductForm
 from .models import Order, OrderItem, Product
 from services.models import ServiceRequest
+from accounts.forms import DealerForm
+from  accounts.models import Dealer
+
+@role_required('dealer')
+def edit_own_dealer_profile(request):
+    # Always ensure profile exists
+    dealer, created = Dealer.objects.get_or_create(user=request.user)
+
+    if created:
+        messages.info(request, "Please complete your profile.")
+
+    if request.method == 'POST':
+        form = DealerForm(request.POST, instance=dealer)
+        if form.is_valid():
+            dealer = form.save(commit=False)
+
+            # Copy shipping → billing if checked
+            if form.cleaned_data.get('same_as_shipping'):
+                dealer.bill_address_line1 = dealer.ship_address_line1
+                dealer.bill_address_line2 = dealer.ship_address_line2
+                dealer.bill_city = dealer.ship_city
+                dealer.bill_state = dealer.ship_state
+                dealer.bill_pincode = dealer.ship_pincode
+                dealer.bill_country = dealer.ship_country
+
+            dealer.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('edit_own_dealer_profile')
+    else:
+        form = DealerForm(instance=dealer)
+
+    return render(request, 'erp/dealer/edit_profile.html', {'form': form})
+
+
+@role_required('dealer')
+def dealer_dashboard(request):
+    dealer = request.user.dealer_profile
+    user = request.user
+
+    # ================= ORDERS =================
+    my_orders_count = Order.objects.filter(dealer=dealer).count()
+
+    pending_shipments = Order.objects.filter(
+        dealer=dealer,
+        status__in=['pending','approved', 'dispatched']
+    ).count()
+
+    # ================= SERVICES =================
+    open_services_count = ServiceRequest.objects.filter(
+        raised_by=user
+    ).exclude(status='closed').count()
+
+    completed_services_count = ServiceRequest.objects.filter(
+        raised_by=user,
+        status='closed'
+    ).count()
+
+    context = {
+        'my_orders_count': my_orders_count,
+        'open_services_count': open_services_count,
+        'completed_services_count': completed_services_count,
+        'pending_shipments': pending_shipments,
+    }
+
+    return render(request, 'erp/dealer/dashboard.html', context)
+
+
+
+
 
 @role_required('dealer')
 def dealer_create_order(request):
@@ -62,37 +131,6 @@ def dealer_create_order(request):
 
 
 
-@role_required('dealer')
-def dealer_dashboard(request):
-    dealer = request.user.dealer_profile
-    user = request.user
-
-    # ================= ORDERS =================
-    my_orders_count = Order.objects.filter(dealer=dealer).count()
-
-    pending_shipments = Order.objects.filter(
-        dealer=dealer,
-        status__in=['pending','approved', 'dispatched']
-    ).count()
-
-    # ================= SERVICES =================
-    open_services_count = ServiceRequest.objects.filter(
-        raised_by=user
-    ).exclude(status='closed').count()
-
-    completed_services_count = ServiceRequest.objects.filter(
-        raised_by=user,
-        status='closed'
-    ).count()
-
-    context = {
-        'my_orders_count': my_orders_count,
-        'open_services_count': open_services_count,
-        'completed_services_count': completed_services_count,
-        'pending_shipments': pending_shipments,
-    }
-
-    return render(request, 'erp/dealer/dashboard.html', context)
 
 @role_required('dealer')
 def dealer_order_detail(request, pk):

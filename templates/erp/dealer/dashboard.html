@@ -70,7 +70,7 @@
         <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-3-desktop mdc-layout-grid__cell--span-4-tablet">
           <div class="mdc-card info-card bg-blue">
             <div class="card-inner">
-              <h5 class="card-title">Pending Shipments</h5>
+              <h5 class="card-title">Pending Orders</h5>
               <h5 class="font-weight-light pb-2 mb-1 border-bottom">
                 {{ pending_shipments }}
               </h5>
@@ -93,13 +93,13 @@
             <div class="mdc-layout-grid__inner">
               <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
                 <a href="{% url 'raise_service' %}" class="mdc-card">
-                  <span>Raise New Request</span>
+                  <span>Raise New Service Request</span>
                   <i class="fa fa-hand-paper-o font-icon" aria-hidden="true"></i>
                 </a>
               </div>
               <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop mdc-layout-grid__cell--span-6-tablet">
-                <a href="{% url 'order_list' %}" class="mdc-card">
-                  <span>View All Orders</span>
+                <a href="{% url 'create_order' %}" class="mdc-card">
+                  <span>Purchase Order</span>
                   <i class="fa fa-cube font-icon" aria-hidden="true"></i>
                 </a>
               </div>

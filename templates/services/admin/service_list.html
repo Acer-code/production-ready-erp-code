@@ -5,63 +5,170 @@
     <main class="content-wrapper">
         <div class="mdc-layout-grid">
             <div class="d-flex justify-content-between mb-3">
-        <div class="header-title">
-          <h4>Service Requests</h4>
-          <p class="mdc-typography mdc-theme--dark">Manage and see service status</p>
-        </div>
-        {% if request.user.role == 'admin' or request.user.role == 'dealer' or request.user.sub_employee_role == 'sales' %}
-        <a href="{% url 'raise_service' %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded"><i class="material-icons mdc-button__icon">add</i>Raise Service</a>
-          {% endif %}  
-      </div>
-            <div class="card">
-                <div class="table-responsive">
+                <div class="header-title">
+                <h4>Service Requests</h4>
+                <p class="mdc-typography mdc-theme--dark">Manage and see service status</p>
+                </div> 
+                
+                <div class="text-right">
+                    
+                    {% if request.user.role == 'admin' or request.user.role == 'dealer'  or request.user.sub_employee_role == 'sales' %}
+                    <a href="{% url 'raise_service' %}" 
+                    class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                    <i class="material-icons mdc-button__icon">add</i>Raise Service</a>
+                    {% endif %} 
+                </div>
+            </div>
+            <!-- Search Box -->
+            <div class="row justify-content-between mb-3">
+                <div class="col-md-6">
+                    <form action="{% url 'global_search' %}"method="get">
+                    <div class="input-group">
+                        <input
+                        type="text"
+                        name="q"
+                        class="form-control"
+                        placeholder="Search..."
+                        value="{{ query }}">
+                        <span class="input-group-text bg-white">
+                        <i class="fa fa-search"></i>
+                        </span>
+                    </div>
+                    </form>
+                </div>
+                <!-- FILTER BAR (ADD THIS) -->
+                 <div class="col-md-6">
+                    <form method="get">
+                        <div class="row">
+                            <!-- Status Filter -->
+                            <div class="col-md-4">
+                                <select name="status" class="form-select form-control" onchange="this.form.submit()">
+                                    <option value="">All Status</option>
+                                    <option value="raised" {% if request.GET.status == 'raised' %}selected{% endif %}>Raised</option>
+                                    <option value="assigned" {% if request.GET.status == 'assigned' %}selected{% endif %}>Assigned</option>
+                                    <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>Closed</option>
+                                </select>
+                            </div>
 
+                            <!-- Engineer Filter -->
+                            <div class="col-md-4">
+                                <select name="engineer" class="form-select form-control" onchange="this.form.submit()">
+                                    <option value="">All Engineers</option>
+                                    {% for eng in engineers %}
+                                        <option value="{{ eng.id }}" 
+                                            {% if request.GET.engineer == eng.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ eng.get_full_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="approve_reject_service" class="form-select form-control" onchange="this.form.submit()">
+                                    <option value="">Approval Status</option>
+                                    <option value="approved" 
+                                        {% if request.GET.approve_reject_service == 'approved' %}selected{% endif %}>
+                                        Approved
+                                    </option>
+                                    <option value="rejected" 
+                                        {% if request.GET.approve_reject_service == 'rejected' %}selected{% endif %}>
+                                        Rejected
+                                    </option>
+                                    <option value="pending" 
+                                        {% if request.GET.approve_reject_service == 'pending' %}selected{% endif %}>
+                                        Pending
+                                    </option>
+                                </select>
+                            </div>
 
+                        </div>
+                    </form>
+                 </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="mdc-card">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th>Serial No</th>
+                                        <th>Status</th>
+                                        <th>Engineer</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services %}
+                                    <tr>
+                                        <td>{{ service.id }}.</td>
+                                        <td>{% if service.product_model %}{{service.product_model}}{% endif %} {{ service.product_name }}</td>
+                                        <td>{{ service.product_serial }}</td>
+                                        <td > 
+                                            {% if service.approval_status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                            {% else %}
+                                            <span class="badge 
+                                            {% if service.status == 'raised' %}bg-warning text-dark
+                                            {% elif service.status == 'assigned' %}bg-info
+                                            {% elif service.status == 'in_progress' %}bg-primary
+                                            {% elif service.status == 'waiting_spare' %}bg-warning
+                                            {% elif service.status == 'completed' %}bg-success
+                                            {% elif service.status == 'closed' %}bg-secondary
+                                            {% endif %}">{{ service.status|title }}</span>
+                                            {% endif %}
+                                        </td>
+                                        {% if service.assigned_engineer %}
+                                        <td>{{ service.assigned_engineer.get_full_name|title}} | <small>{{service.assigned_engineer.phone}}</small></td>
+                                        <td>
+                                            {% else %}
+                                        <td><span class="badge bg-danger">Not Assigned</span></td>
+                                        <td>
+                                            {% endif %}
+                                            <a href="{% url 'service_detail' service.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">No Service Requests</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            {% if page_obj.has_other_pages %}
+                                <nav>
+                                <ul class="pagination">
 
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Product</th>
-                                <th>Serial No</th>
-                                <th>Status</th>
-                                <th>Engineer</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for service in services %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{% if service.product_model %}{{service.product_model}}{% endif %} {{ service.product_name }}</td>
-                                <td>{{ service.product_serial }}</td>
-                                <td > <span class="badge 
-                                {% if service.status == 'raised' %}bg-warning text-dark
-                                {% elif service.status == 'assigned' %}bg-info
-                                {% elif service.status == 'in_progress' %}bg-primary
-                                {% elif service.status == 'waiting_spare' %}bg-warning
-                                {% elif service.status == 'completed' %}bg-success
-                                {% elif service.status == 'closed' %}bg-secondary
-                                {% endif %}">{{ service.status|title }}</span></td>
-                                {% if service.assigned_engineer %}
-                                <td>{{ service.assigned_engineer.get_full_name|title}} | <small>{{service.assigned_engineer.phone}}</small></td>
-                                  <td>
-                                    {% else %}
-                                <td><span class="badge bg-danger">Not Assigned</span></td>
-                                  <td>
-                                    {% endif %}
-                                    <a href="{% url 'service_detail' service.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
-                                        View
-                                    </a>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-center">No Service Requests</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+                                        <a class="page-link" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% else %}#{% endif %}">
+                                            <i class="fa fa-angle-double-left" aria-hidden="true"></i></a>
+                                    </li>
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                    {% endfor %}
+
+                                    <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+                                        <a class="page-link" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% else %}#{% endif %}">
+                                        <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                                </nav>
+                            {% endif %}
+                        </div>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>

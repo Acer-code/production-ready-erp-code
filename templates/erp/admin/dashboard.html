@@ -6,104 +6,104 @@
  <div class="page-wrapper mdc-toolbar-fixed-adjust">
         <main class="content-wrapper">
           <div class="mdc-layout-grid">
-  <div class="mdc-layout-grid__inner">
+            <div class="mdc-layout-grid__inner">
 
-    <!-- TOTAL USERS -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-      <div class="mdc-card info-card bg-blue">
-        <div class="card-inner">
-          <h5 class="card-title">Users</h5>
-          <h5 class="font-weight-light pb-2 mb-1 border-bottom">
-            {{ total_users }}
-          </h5>
-          <p class="tx-12 text-muted">Registered users</p>
-          <div class="card-icon">
-            <i class="fa fa-users"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRODUCTS -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-      <div class="mdc-card info-card bg-purple">
-        <div class="card-inner">
-          <h5 class="card-title">Products</h5>
-          <h5 class="font-weight-light pb-2 mb-1 border-bottom">
-            {{ total_products }}
-          </h5>
-          <p class="tx-12 text-muted">Available products</p>
-          <div class="card-icon">
-            <i class="fa fa-cube"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ORDERS -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-      <div class="mdc-card info-card bg-yellow">
-        <div class="card-inner">
-          <h5 class="card-title">Orders</h5>
-          <h5 class="font-weight-light pb-2 mb-1 border-bottom">
-            {{ total_orders }}
-          </h5>
-          <p class="tx-12 text-muted">{{ pending_orders }} pending</p>
-          <div class="card-icon">
-            <i class="fa fa-shopping-cart"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SERVICES -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-      
-      <div class="mdc-card info-card bg-pink">
+              <!-- TOTAL USERS -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+                <div class="mdc-card info-card bg-blue">
                   <div class="card-inner">
-                    <h5 class="card-title">Service Requests</h5>
-                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_service }}</h5>
-                    <p class="tx-12 text-muted">{{ open_services }} open</p>
+                    <h5 class="card-title">Users</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                      {{ total_users }}
+                    </h5>
+                    <p class="tx-12 text-muted">Registered users</p>
                     <div class="card-icon">
-                      <i class="fa fa-wrench"></i>
+                      <i class="fa fa-users"></i>
                     </div>
                   </div>
                 </div>
-    </div>
+              </div>
 
-    <!-- ACTIVITY -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-      <div class="mdc-card info-card bg-orange">
-        <div class="card-inner">
-          <h5 class="card-title">Activity</h5>
-          <h5 class="font-weight-light pb-2 mb-1 border-bottom">
-            {{ total_activity }}
-          </h5>
-          <p class="tx-12 text-muted">System logs</p>
-          <div class="card-icon">
-            <i class="fa fa-history"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUCCESS RATE -->
-    <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
-    
-      <div class="mdc-card info-card bg-green">
+              <!-- PRODUCTS -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+                <div class="mdc-card info-card bg-purple">
                   <div class="card-inner">
-                    <h5 class="card-title">Success Rate</h5>
-                    <h5 class="font-weight-light pb-2 mb-1 border-bottom"> {{ service_success_rate }}%</h5>
-                    <p class="tx-12 text-muted">Closed services</p>
+                    <h5 class="card-title">Products</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                      {{ total_products }}
+                    </h5>
+                    <p class="tx-12 text-muted">Available products</p>
                     <div class="card-icon">
-                      <i class="material-icons">trending_up</i>
+                      <i class="fa fa-cube"></i>
                     </div>
                   </div>
                 </div>
-    </div>
+              </div>
 
-  </div>
-</div>
+              <!-- ORDERS -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+                <div class="mdc-card info-card bg-yellow">
+                  <div class="card-inner">
+                    <h5 class="card-title">Orders</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                      {{ total_orders }}
+                    </h5>
+                    <p class="tx-12 text-muted">{{ pending_orders }} pending</p>
+                    <div class="card-icon">
+                      <i class="fa fa-shopping-cart"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SERVICES -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+                
+                <div class="mdc-card info-card bg-pink">
+                            <div class="card-inner">
+                              <h5 class="card-title">Service Requests</h5>
+                              <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_service }}</h5>
+                              <p class="tx-12 text-muted">{{ open_services }} open</p>
+                              <div class="card-icon">
+                                <i class="fa fa-wrench"></i>
+                              </div>
+                            </div>
+                          </div>
+              </div>
+
+              <!-- ACTIVITY -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+                <div class="mdc-card info-card bg-orange">
+                  <div class="card-inner">
+                    <h5 class="card-title">Activity</h5>
+                    <h5 class="font-weight-light pb-2 mb-1 border-bottom">
+                      {{ total_activity }}
+                    </h5>
+                    <p class="tx-12 text-muted">System logs</p>
+                    <div class="card-icon">
+                      <i class="fa fa-history"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SUCCESS RATE -->
+              <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-4-desktop">
+              
+                <div class="mdc-card info-card bg-green">
+                    <div class="card-inner">
+                      <h5 class="card-title">Success Rate</h5>
+                      <h5 class="font-weight-light pb-2 mb-1 border-bottom"> {{ service_success_rate }}%</h5>
+                      <p class="tx-12 text-muted">Closed services</p>
+                      <div class="card-icon">
+                        <i class="material-icons">trending_up</i>
+                      </div>
+                    </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
 
           <div class="mdc-layout-grid">
             <h3>Quick Actions</h3>
@@ -121,7 +121,7 @@
                 <div class="mdc-card quick-actions">
                   <div class="col-md-7">
                     <h4 class="mdc-typography--headline6">Service Request</h4>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#service-request">Raise a support ticket</a>
+                    <a href="{% url 'raise_service' %}">Raise a support ticket</a>
                   </div>
                   <i class="fa fa-wrench font-icon"></i>
                 </div>
@@ -140,28 +140,8 @@
         </main>
       </div>
     </div>
-  </div>
+ </div>
 
-
-  <!-- Modal-service-request -->
-  <div class="modal fade" id="service-request" tabindex="-1" aria-labelledby="serviceRequestLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="serviceRequestLabel">Modal title</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          ...
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Modal-service-request -->
 
 
 {% endblock %}

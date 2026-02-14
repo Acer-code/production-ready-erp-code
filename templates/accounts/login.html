@@ -19,28 +19,28 @@
     <link rel="stylesheet" href="{% static 'assets/css/demo/style.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
     <!-- End layout styles -->
-    <link rel="shortcut icon" href="{% static 'assets/images/favicon.png' %}" />
+    <link rel="shortcut icon" href="{% static 'assets/images/favicon-.png' %}" />
 </head>
 
 <body>
     <script src="{% static 'assets/js/preloader.js' %}"></script>
     <div class="body-wrapper">
         <div class="main-wrapper">
-            <div class="page-wrapper full-page-wrapper d-flex align-items-center justify-content-center">
+            <div class="page-wrapper full-page-wrapper d-flex align-items-center justify-content-center login-bg">
                 <main class="auth-page">
                     <div class="container">
                         <div class="row align-items-center justify-content-center">
                             <div class="col-lg-6 col-12">
                                 <div class="mdc-card card-style">
                                     <h1 class="main-title">Acer Biomedicals</h1>
-                                    <p class="mdc-typography--headline3 mb-4">Customer Relationship Management System
+                                    <p class="mdc-typography--headline3 mb-4">Enterprise Resource Planning System
                                     </p>
                                     <div class="work-category">
                                         <!-- track-order -->
                                         <div class="mdc-card mb-3">
                                             <div class="d-flex">
                                                 <div class="icon-block">
-                                                    <i class="mdi mdi-cube"></i>
+                                                    <i class="mdi mdi-cart"></i>
                                                 </div>
                                                 <div class="work-desc d-flex flex-column">
                                                     <span class="mdc-typography--headline6">Order Management</span>
@@ -53,7 +53,7 @@
                                         <div class="mdc-card mb-3">
                                             <div class="d-flex">
                                                 <div class="icon-block">
-                                                    <i class="mdi mdi-cube"></i>
+                                                    <i class="mdi mdi-tools mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true"></i>
                                                 </div>
                                                 <div class="work-desc d-flex flex-column">
                                                     <span class="mdc-typography--headline6">Service Requests</span>
@@ -66,7 +66,7 @@
                                         <div class="mdc-card">
                                             <div class="d-flex">
                                                 <div class="icon-block">
-                                                    <i class="mdi mdi-cube"></i>
+                                                    <i class="mdi mdi-chart-line"></i>
                                                 </div>
                                                 <div class="work-desc d-flex flex-column">
                                                     <span class="mdc-typography--headline6">Analytics Dashboard</span>
@@ -78,39 +78,6 @@
                                     </div>
                                 </div>
                             </div>
-                            {% comment %}
-                            <!-- <div class="col-lg-6 col-12">
-                                <div class="mdc-card">
-
-                                    <h2 class="mb-2 text-center">Login</h2>
-                                    <p class="mdc-typography--subtitle2 text-center">Sign in to access your dashboard
-                                    </p>
-                                    {% if messages %}
-                                    {% for message in messages %}
-                                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show text-danger"
-                                        role="alert">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    {% endfor %}
-                                    {% endif %}
-                                    <form method="POST" action="{% url 'login' %}" class="login-form">
-                                        {% csrf_token %}
-
-                                        {{ form.as_p}}
-
-                                        <div class="mb-3 p-0">
-                                            <button type="submit" class="mdc-button mdc-button--raised w-100 rounded">
-                                                Sign In
-                                            </button>
-
-                                        </div>
-                                    </form>
-
-                                </div>
-                            </div> -->
-                            {% endcomment %}
                             <div class="col-lg-6 col-12">
                                 <div class="mdc-card p-4">
 
@@ -151,6 +118,7 @@
                                                 <option value="">Sub employee role</option>
                                                 <option value="sales">Sales</option>
                                                 <option value="service">Service</option>
+                                                <option value="engineer">Engineer</option>
                                                 <option value="inventory">Inventory</option>
                                                 <option value="dispatch">Dispatch</option>
                                             </select>
@@ -174,7 +142,7 @@
                                             <span class="position-absolute top-50 end-0 translate-middle-y me-3"
                                             style="cursor:pointer;" onclick="togglePassword()">
                                             <i id="eyeIcon" class="mdi mdi-eye-off-outline"></i>
-                                        </span>
+                                             </span>
                                         </div>
                                         </div>
 
@@ -200,6 +168,8 @@
             </div>
         </div>
     </div>
+   
+<!-- SHOW/HIDE PASSWORD -->
 <script>
 function togglePassword() {
   const password = document.getElementById("password");
@@ -216,6 +186,28 @@ function togglePassword() {
   }
 }
 </script>
+
+<!-- ROLE BASED FIELD ACCESSABILITY -->
+ <script>
+const roleSelect = document.querySelector('select[name="role"]');
+const subRoleDiv = document.querySelector('select[name="sub_employee_role"]').parentElement;
+
+function toggleSubRole() {
+    if (roleSelect.value === 'employee') {
+        subRoleDiv.style.display = 'block';
+    } else {
+        subRoleDiv.style.display = 'none';
+    }
+}
+
+// on change
+roleSelect.addEventListener('change', toggleSubRole);
+
+// on page load
+toggleSubRole();
+
+</script>
+
 
 
     <!-- plugins:js -->

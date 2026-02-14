@@ -4,8 +4,6 @@ from django.utils.text import slugify
 from django.forms import inlineformset_factory
 from accounts.models import Dealer
 
-
-
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
@@ -45,7 +43,7 @@ class ProductForm(forms.ModelForm):
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        fields = ['current_quantity', 'min_stock_level', 'total_stock', 'location']
+        fields = ['current_quantity', 'min_stock_level', 'new_stock_shippment', 'total_stock', 'location']
 
 
 class OrderForm(forms.ModelForm):
@@ -57,8 +55,15 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields ='__all__'
-        exclude = ['sub_total','tax_total','grand_total', 'order_date', 'status']
+        exclude = [       
+        'created_by',
+        'sales_person',
+        'status',
+        'sub_total',
+        'tax_total',
+        'grand_total',
+        'order_date',
+        ]
         
         widgets={ 
             'full_name': forms.TextInput(attrs={'class':'form-control','placeholder':'full name'}),
@@ -66,6 +71,7 @@ class OrderForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class':'form-control','placeholder':'email'}),
             'company_name':forms.TextInput(attrs={'class':'form-control','placeholder':'company name'}),
             'gstin': forms.TextInput(attrs={'class':'form-control','placeholder':'GSTIN'}),
+            'payment_mode':forms.Select(attrs={'class':'form-control form-select'}),
             'bill_building':forms.TextInput(attrs={'class':'form-control','placeholder':'billing address'}),
             'bill_city': forms.TextInput(attrs={'class':'form-control','placeholder':'billing city'}),
             'bill_state':forms.TextInput(attrs={'class':'form-control','placeholder':'billing state'}),
@@ -78,14 +84,28 @@ class OrderForm(forms.ModelForm):
             'shipp_country':forms.TextInput(attrs={'class':'form-control','placeholder':'shipping country'}),
         }
 
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user',None)
         super().__init__(*args, **kwargs)
+        required_fields = [
+            'full_name','phone','email','company_name','gstin','payment_mode',
+            'shipp_building','shipp_city','shipp_state','shipp_zip','shipp_country',
+            'bill_building','bill_city','bill_state','bill_zip','bill_country',
+        ]
+
+        for field in required_fields:
+            self.fields[field].required = True
 
         if user and user.role == 'dealer':
             self.fields.pop('dealer')
-        if user and user.role == 'employee' and user.sub_employee_role == 'sales':
-            self.fields['dealer'].queryset = Dealer.objects.filter(is_active = True)
+
+        # Sales + Admin CAN select dealer
+        if user and user.role in ['employee', 'admin']:
+            self.fields['dealer'].queryset = Dealer.objects.filter(is_active=True)
+            self.fields['dealer'].label_from_instance = (
+                lambda obj: f"{obj.get_full_name()} | {obj.user.email}"
+            )
 
         if 'dealer' in self.fields:
             self.fields['dealer'].label_from_instance = (

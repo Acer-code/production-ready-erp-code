@@ -12,7 +12,9 @@
                   <div class="card-inner">
                     <h5 class="card-title">Total Products</h5>
                     <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_products }}</h5>
-                    <p class="tx-12 text-muted">Available Products</p>
+                    <a href="{% url 'product_list' %}" class="tx-12 view-detail">
+                      View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+                    </a>
                     <div class="card-icon">
                       <i class="fa fa-cart-plus"></i>
                     </div>
@@ -24,7 +26,9 @@
                   <div class="card-inner">
                     <h5 class="card-title">Dealers</h5>
                     <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_dealers }}</h5>
-                    <p class="tx-12 text-muted"></p>
+                    <a href="{% url 'user_list' %}" class="tx-12 view-detail">
+                      View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+                    </a>
                     <div class="card-icon">
                       <i class="fa fa-users"></i>
                     </div>
@@ -36,7 +40,9 @@
                   <div class="card-inner">
                     <h5 class="card-title">Employess</h5>
                     <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_employees }}</h5>
-                    <p class="tx-12 text-muted"></p>
+                    <a href="{% url 'user_list' %}" class="tx-12 view-detail">
+                      View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+                    </a>
                     <div class="card-icon">
                       <i class="fa fa-user-plus" aria-hidden="true"></i>
                     </div>
@@ -48,7 +54,9 @@
                   <div class="card-inner">
                     <h5 class="card-title">Total Orders</h5>
                     <h5 class="font-weight-light pb-2 mb-1 border-bottom">{{ total_orders }}</h5>
-                    <p class="tx-12 text-muted">Total interactions</p>
+                    <a href="{% url 'order_list' %}" class="tx-12 view-detail">
+                      View Details <span class="ms-3"><i class="fa fa-angle-right"></i></span>
+                    </a>
                     <div class="card-icon">
                       <i class="fa fa-cubes" aria-hidden="true"></i>
                     </div>

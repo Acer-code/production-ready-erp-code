@@ -1,0 +1,452 @@
+{% extends "erp/admin/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+  <main class="content-wrapper">
+    <div class="mdc-layout-grid">
+      <div class="header-title mb-3">
+        <h4>
+          {% if query %}
+          {% if products %}
+          Search Results for Products ({{ products|length }})
+          {% elif orders %}
+          Search Results for Orders ({{ orders|length }})
+          {% elif services %} 
+          Search Results for Service Requests ({{ services|length }})
+          {% elif users %}
+          Search Results for Users ({{ users|length }})
+          {% else %}
+          Search Results
+          {% endif %}
+          {% endif %}
+        </h4>
+      </div>
+
+      <!-- Search Box -->
+      <div class="row justify-content-between mb-3">
+            <div class="col-md-12">
+              <form action="{% url 'global_search' %}"method="get">
+              <div class="input-group">
+                <input
+                type="text"
+                name="q"
+                class="form-control"
+                placeholder="Search..."
+                value="{{ query }}">
+                <span class="input-group-text bg-white">
+                  <i class="fa fa-search"></i>
+                </span>
+              </div>
+              </form>
+            </div>
+      </div>
+      <!-- Results -->
+      {% if query %}
+      
+      <div class="card">
+        <div class="table-responsive">
+          <!-- Products -->
+          {% if products %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th class="text-center checkbox">
+                  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                </th>
+                <th>Image</th>
+                <th class="pname">Product</th>
+                <th>Model</th>
+                {% if request.user.role == 'dealer' %}
+                <th>Category</th>
+                {% endif %}
+                <th>Tax(%)</th>
+                <th>Price</th>
+                {% if request.user.role != 'dealer' %}
+                <th>Quantity</th>
+                <th>Stock</th>
+                {% endif %}
+                {% if request.user.role == 'admin' or request.user.sub_employee_role == 'inventory' %}
+                <th>Actions</th>
+                {% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for product in products %}
+              <tr>
+                <td class="text-center">
+                  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                </td>
+                {% if product.img %}
+                <td class="product-img">
+                  <img src="{{ product.img.url }}" alt="{{product.name}}" class="img-fluid">
+                </td>
+                {% else %}
+                <td class="product-img">
+                  <img src="" alt="{{product.name}}" class="img-fluid">
+                </td>
+                {% endif %}
+                <td class="pname" title="if text is too large to fit into the table data">{{product.name}}</td>
+                <td>{{product.product_model}}</td>
+                {% if request.user.role == 'dealer' %}
+                <td>{{product.category}}</td>
+                {% endif %}
+                <td>{{product.tax}}</td>
+                <td>₹ {{product.price}}</td>
+                {% if request.user.role != 'dealer' %}
+                <td>{{product.stock.current_quantity}}</td>
+
+                {% if product.stock.current_quantity > product.stock.min_stock_level %}
+                <td class="text-success">In Stock</td>
+                {% elif product.stock.current_quantity <= product.stock.min_stock_level and product.stock.current_quantity != 0 %} 
+                <td class="text-warning">Law Stock</td>
+                  {% else %}
+                  <td class="text-danger">Out of Stock</td>
+                  {% endif %}
+                  {% endif %}
+                  {% if request.user.role == 'admin' or request.user.sub_employee_role == 'inventory' %}
+                  <td>
+                    <span class="d-flex align-items-center action">
+                      <button type="button" class="btn bg-success text-white me-2" data-bs-toggle="modal"
+                        data-bs-target="#edit-item-{{product.id}}">
+                        <i class="fa fa-pencil"></i>
+                      </button>
+                      <a href="{% url 'delete_product' product.slug %}" class="btn bg-danger text-white"
+                        onclick="return confirm('Are you sure you want to delete this product?')"><i
+                          class="fa fa-trash-o"></i></a>
+
+                    </span>
+                  </td>
+                  {% endif %}
+              </tr>
+
+
+              <!-- Modal-edit-items -->
+              <div class="modal fade" id="edit-item-{{product.id}}" tabindex="-1" aria-labelledby="editItemLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="editItemLabel">Edit Product - {{product.name}} 
+                       {% if product.product_model %}{{product.product_model}}{% endif %}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <form action="{% url 'edit_product' product.slug %}" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                          <div class="col-md-6 mb-3">
+                            <label for="pname" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="pname" name="name" value="{{product.name}}"
+                              required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="pmodel" class="form-label">Product Model</label>
+                            <input type="text" class="form-control" id="pmodel" name="product_model"
+                              value="{{product.product_model}}">
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="category" name="category"
+                              value="{{product.category}}" required>
+
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="stock" class="form-label">Price</label>
+                            <input type="text" class="form-control" id="stock" name="price" value="{{product.price}}"
+                              required>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="tax-rate" class="form-label">Tax Rate</label>
+                            <select name="tax" id="tax-rate"class="form-select form-control">
+                              <option value="">Select tax rate</option>
+                              <option value="18"{% if product.tax == 18 %}selected{% endif %}>18%</option>
+                              <option value="12"{% if product.tax == 12 %}selected{% endif %}>12%</option>
+                              <option value="5"{% if product.tax == 5 %}selected{% endif %}>5%</option>
+                            </select>
+                          </div>
+                          <div class="col-md-6 mb-3">
+                            <label for="slug" class="form-label">Slug</label>
+                            <input type="text" class="form-control" id="slug" name="slug" value="{{product.slug}}">
+                            <small class="text-muted">It will generate auto Leave blank </small>
+                          </div>
+                          <div class="col-12 mb-3">
+                            <label class="form-label">Product Image</label>
+
+                            <div class="row">
+                              <div class="col-md-6">
+                                <input type="file" class="form-control" name="img">
+                                <small class="text-muted">Leave blank to keep existing image</small>
+                              </div>
+
+                              {% if product.img %}
+                              <div class="col-md-6">
+                                <img src="{{ product.img.url }}" alt="{{ product.name }}"
+                                  style="max-width: 120px; border-radius: 6px;">
+                              </div>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                          <button type="submit"
+                            class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Modal-edit-items -->
+              {% endfor%}
+
+            </tbody>
+          </table>
+          <!-- Orders -->
+          {% elif orders %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Order#</th>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Ceated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+              <tr>
+                <td>PO000{{order.id}}</td>
+                <td>{{order.full_name}}</td>
+                <td>{{order.phone}}</td>
+                <td>{{order.grand_total}}</td>
+                <td>
+                  <!-- <span class="badge bg-info">Pending</span> -->
+                   <span class="badge
+                {% if order.status == 'pending' %}bg-warning
+                {% elif order.status == 'approved' %}bg-primary
+                {% elif order.status == 'rejected' %}bg-danger
+                {% elif order.status == 'dispatched' %}bg-info
+                {% elif order.status == 'delivered' %}bg-success
+                {% endif %}">
+                {{ order.get_status_display }}
+              </span>
+                </td>
+                <td>{{order.order_date}}</td>
+                <td><a href="{% url 'order_detail' order.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">View</a></td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+          </table>
+          <!-- Services -->
+          {% elif services %}
+           <table class="table">
+              <thead>
+                  <tr>
+                      <th>#</th>
+                      <th>Product</th>
+                      <th>Serial No</th>
+                      <th>Status</th>
+                      <th>Engineer</th>
+                      <th>Action</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for service in services %}
+                  <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{% if service.product_model %}{{service.product_model}}{% endif %} {{ service.product_name }}</td>
+                      <td>{{ service.product_serial }}</td>
+                      <td > <span class="badge 
+                      {% if service.status == 'raised' %}bg-warning text-dark
+                      {% elif service.status == 'assigned' %}bg-info
+                      {% elif service.status == 'in_progress' %}bg-primary
+                      {% elif service.status == 'waiting_spare' %}bg-warning
+                      {% elif service.status == 'completed' %}bg-success
+                      {% elif service.status == 'closed' %}bg-secondary
+                      {% endif %}">{{ service.status|title }}</span></td>
+                      {% if service.assigned_engineer %}
+                      <td>{{ service.assigned_engineer.get_full_name|title}} | <small>{{service.assigned_engineer.phone}}</small></td>
+                        <td>
+                          {% else %}
+                      <td><span class="badge bg-danger">Not Assigned</span></td>
+                        <td>
+                          {% endif %}
+                          <a href="{% url 'service_detail' service.id %}" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">
+                              View
+                          </a>
+                      </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                      <td colspan="6" class="text-center">No Service Requests</td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+          <!-- Users -->
+          {% elif users %}
+           <table class="table">
+              <thead>
+                  <tr>
+                      <th>User ID</th>
+                      <th>Full Name</th>
+                      <th>Role</th>
+                      <th>Phone</th>
+                      <th>Email</th>
+                        {% if request.user.role == 'admin' %}
+                      <th>Actions</th>
+                      {% endif %}
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for user in users %}
+                  <tr>
+
+                      <td>
+                          {% if user.role == 'admin' %}
+                          AD000{{user.id}}
+                          {% elif user.role == 'director' %}
+                          DIR000{{user.id}}
+                          {% elif user.role == 'dealer' %}
+                          VEN000{{user.id}}
+                          {% elif user.sub_employee_role == 'sales' %}
+                          SAL000{{user.id}}
+                          {% elif user.sub_employee_role == 'service' %}
+                          SER000{{user.id}}
+                          {% elif user.sub_employee_role == 'dispatch' %}
+                          DIS000{{user.id}}
+                          {% elif user.sub_employee_role == 'inventory' %}
+                          INV000{{user.id}}
+                          {% endif %}
+                      </td>
+
+
+                      <td>{{user.get_full_name|title}}</td>
+                      {% if user.role == 'employee' %}
+                      <td>{{user.sub_employee_role|title}}</td>
+                      {% else %}
+                      <td>{{user.role|title}}</td>
+                      {% endif %}
+                      <td>{% if user.phone %}{{user.phone}}{% else %}---{% endif %}</td>
+                      <td>{{user.email}}</td>
+                      {% if request.user.role == 'admin' %}
+                      <td>
+                          <span class="d-flex align-items-center action">
+                              <button type="button" class="btn bg-success text-white me-2"
+                                  data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}">
+                                  <i class="fa fa-pencil"></i>
+                              </button>
+                            <form action="{% url 'delete_user' user.id %}" method="POST">
+                                  {% csrf_token %}
+                                  <button type="submit" class="btn bg-danger text-white" onclick="return confirm('Are you sure ? you want to delete {{user.role}} account ?')">
+                                      <i class="fa fa-trash-o"></i>
+                                  </button>
+                              </form>
+                          </span>
+                      </td>
+                      {% endif %}
+                  </tr>
+
+                  <!-- Modal-edit-user -->
+                  <div class="modal fade" id="edit-user-{{user.id}}" tabindex="-1"
+                      aria-labelledby="editUserLabel" aria-hidden="true">
+                      <div class="modal-dialog">
+                          <div class="modal-content">
+                              <div class="modal-header">
+                                  <h5 class="modal-title" id="editUserLabel">Edit User</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                      aria-label="Close"></button>
+                              </div>
+                              <div class="modal-body">
+                                  
+                                  <form action="{% url 'edit_user' user.id %}" method="POST">
+                                      {% csrf_token %}
+                                      <div class="row">
+                                          <div class="mb-3 col-md-6">
+                                              <label for="role" class="form-label">Role</label>
+                                              <select class="form-select form-control" id="role" name="role">
+                                                  <option value="">Select Role</option>
+                                                  <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                                  <option value="employee" {% if user.role == 'employee' %}selected{% endif %}>Employee</option>
+                                                  <option value="dealer" {% if user.role == 'dealer' %}selected{% endif %}>Vendor</option>
+                                                  <option value="director" {% if user.role == 'director' %}selected{% endif %}>Director</option>
+                                              </select>
+                                          </div>
+                                          <div class="mb-3 col-md-6">
+                                              <label for="sub-role" class="form-label">Sub Role</label>
+                                              <select class="form-select form-control" id="sub-role"
+                                                  name="sub_employee_role">
+                                                  <option>Select sub role</option>
+                                                  <option value="sales" {% if user.sub_employee_role == 'sales' %}selected{% endif %}>Sales</option>
+                                                  <option value="service" {% if user.sub_employee_role == 'service' %}selected{% endif %}>
+                                                      Service</option>
+                                                  <option value="inventory" {% if user.sub_employee_role == 'inventory' %}selected{% endif %}>Inventory</option>
+                                                  <option value="dispatch" {% if user.sub_employee_role == 'dispatch' %}selected{% endif %}>Dispatch</option>
+                                              </select>
+                                          </div>
+                                          <div class="mb-3 col-md-6">
+                                              <label for="first-name" class="form-label">First Name</label>
+                                              <input type="text" class="form-control" id="first-name"
+                                                  value="{{user.first_name}}" name="first_name" required>
+                                          </div>
+                                          <div class="mb-3 col-md-6">
+                                              <label for="last-name" class="form-label">Last Name</label>
+                                              <input type="text" class="form-control" id="last-name"
+                                                  value="{{user.last_name}}" name="last_name">
+                                          </div>
+                                          <div class="mb-3 col-md-6">
+                                              <label for="phone" class="form-label">Phone</label>
+                                              <input type="tel" class="form-control" id="phone"
+                                                  value="{{user.phone}}" name="phone" required>
+                                          </div>
+                                          <div class="mb-3 col-md-6">
+                                              <label for="email-address" class="form-label">Email</label>
+                                              <input type="email" class="form-control" id="email-address"
+                                                  value="{{user.email}}" name="email" required>
+                                          </div>
+                                          <div class="mb-3">
+                                              <label for="company" class="form-label">Company</label>
+                                              <input type="text" class="form-control" id="company"
+                                                  value="{{user.company}}" name="company">
+                                          </div>
+
+                                      </div>
+                                      <div class="modal-footer justify-content-center">
+                                          <button type="submit"
+                                              class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded">Submit</button>
+                                      </div>
+                                  </form>
+                              </div>
+
+                          </div>
+                      </div>
+                  </div>
+                  <!-- Modal-edit-user -->
+
+                  
+                  {% endfor %}
+
+              </tbody>
+          </table>
+          {% elif not products and not orders and not services and not users %}
+          <div class="col-12 text-center text-muted mt-4">
+            <i class="fa fa-search fa-2x mb-2"></i>
+            <p>No results found for "{{ query }}"</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    </div>
+  </main>
+</div>
+
+{% endblock %}

@@ -1,21 +1,49 @@
 from accounts.models import User
+from django.db.models import Q
 
-def admins_and_directors():
-    return User.objects.filter(role__in=['admin', 'director'])
-
-def service_team():
+def product_notification_users():
+    """
+    Stock notifications should go to:
+    - Admin
+    - Director
+    - Sales employee
+    - Inventory employee
+    - Dispatch employee
+    """
     return User.objects.filter(
-        role__in=['admin', 'director']
-    ) | User.objects.filter(
-        role='employee',
-        sub_employee_role='service'
+        Q(role__in=['admin', 'director']) |
+        Q(role='employee', sub_employee_role__in=[
+            'sales', 'inventory', 'dispatch'
+        ])
     )
 
-def all_except_dealers():
-    return User.objects.exclude(role='dealer')
+def stock_notification_users():
+    """
+    Stock notifications should go to:
+    - Admin
+    - Director
+    - Sales employee
+    - Inventory employee
+    - Dispatch employee
+    """
+    return User.objects.filter(
+        Q(role__in=['admin', 'director']) |
+        Q(role='employee', sub_employee_role__in=[
+            'sales', 'inventory', 'dispatch'
+        ])
+    )
+
+def admins_and_directors():
+    return User.objects.filter(role__in=["admin", "director"])
 
 def dispatch_team():
     return User.objects.filter(
-        role='employee',
-        sub_employee_role='dispatch'
-    ) | User.objects.filter(role__in=['admin', 'director'])
+        role="employee",
+        sub_employee_role="dispatch"
+    ) | admins_and_directors()
+
+def inventory_team():
+    return User.objects.filter(
+        role="employee",
+        sub_employee_role="inventory"
+    ) | admins_and_directors()
