@@ -177,9 +177,7 @@ def edit_user(request, pk):
         email = request.POST.get('email')
         company = request.POST.get('company')
         role = request.POST.get('role')
-        print('role',role)
         sub_employee_role = request.POST.get('sub_employee_role')
-        print('sub_employee_role',sub_employee_role)
         try:
             with transaction.atomic():
                 user.first_name = first_name
@@ -410,27 +408,68 @@ def create_order(request):
 
                     order.save()
 
-                    # -----------------------------------
-                    # MERGE DUPLICATE PRODUCTS 
-                    # -----------------------------------
-                    product_qty_map = defaultdict(int)
+                    product_map = {}
 
                     for item in valid_items:
                         product = item['product']
                         qty = item['qty']
-                        product_qty_map[product] += qty
+                        discount = item.get('discount', 0) or 0
 
-                    # -----------------------------------
-                    #  Save clean order items
-                    # -----------------------------------
-                    for product, qty in product_qty_map.items():
+                        if discount == product.price:
+                            raise ValueError("Discount cannot be equal to unit price")
+                            
+                        if discount < 0:
+                            raise ValueError("Discount cannot be negative")
+
+                        if discount > product.price:
+                            raise ValueError("Discount cannot exceed unit price")
+                        
+
+                        if product in product_map:
+                            product_map[product]['qty'] += qty
+                            # keep MAX discount per unit (or you can sum, your choice)
+                            product_map[product]['discount'] = max(
+                                product_map[product]['discount'],
+                                discount
+                            )
+                        else:
+                            product_map[product] = {
+                                'qty': qty,
+                                'discount': discount
+                            }
+
+                    for product, data in product_map.items():
                         OrderItem.objects.create(
                             order=order,
                             product=product,
-                            qty=qty,
+                            qty=data['qty'],
                             unit_price=product.price,
+                            discount=data['discount'],
                             gst_rate=product.tax
                         )
+
+                    # -----------------------------------
+                    # MERGE DUPLICATE PRODUCTS 
+                    # -----------------------------------
+                    # product_qty_map = defaultdict(int)
+
+                    # for item in valid_items:
+                    #     product = item['product']
+                    #     qty = item['qty']
+                    #     product_qty_map[product] += qty
+
+                    # # -----------------------------------
+                    # #  Save clean order items
+                    # # -----------------------------------
+                    # for product, qty in product_qty_map.items():
+                    #     discount = item.get('discount', 0) or 0
+                    #     OrderItem.objects.create(
+                    #         order=order,
+                    #         product=product,
+                    #         qty=qty,
+                    #         unit_price=product.price,
+                    #         gst_rate=product.tax
+                    #     )
 
                     # -----------------------------------
                     #Calculate totals
@@ -441,7 +480,6 @@ def create_order(request):
                 return redirect('order_list')
 
             except Exception as e:
-                print('Order creation error:', e)
                 messages.error(request, 'Something went wrong while creating order.')
 
         else:
@@ -598,6 +636,16 @@ def update_order_status(request, pk):
                     stock.current_quantity = F('current_quantity') + item.qty
                     stock.save()
 
+            # Validate tracking before dispatch
+            if new_status == 'dispatched':
+                if not order.tracking_number or not order.courier:
+                    messages.error(
+                        request,
+                        "Please add courier and tracking number before dispatching."
+                    )
+                    return redirect(request.META.get('HTTP_REFERER'))
+
+
             order.status = new_status
             order.save()
 
@@ -643,18 +691,18 @@ def order_list(request):
     if user.role == 'admin':
         orders = Order.objects.select_related(
             'dealer', 'created_by', 'sales_person'
-        )
+        ).order_by('-order_date')
         
 
     elif user.role == 'dealer':
         orders = Order.objects.select_related(
             'dealer', 'created_by'
-        ).filter(dealer=user.dealer_profile)   
+        ).filter(dealer=user.dealer_profile).order_by('-order_date')
 
     elif user.role == 'employee' and user.sub_employee_role == 'sales':
         orders = Order.objects.select_related(
             'dealer', 'created_by'
-        ).filter(created_by=user)
+        ).filter(created_by=user).order_by('-order_date')
 
     else:
         orders = Order.objects.all().order_by('-order_date')

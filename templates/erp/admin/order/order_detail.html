@@ -46,7 +46,7 @@
                     <th>Phone:</th>
                     <td>{{ order.phone }}</td>
                     <th>Payment Mode:</th>
-                    <td>{{ order.payment_mode }}</td>
+                    <td>{{ order.payment_mode|title }}</td>
                   </tr>
                   <tr>
 
@@ -136,18 +136,22 @@
                       <th class="bg-light">Name:</th>
                       <td>{{ order.creator_display.name }}</td>
                     </tr>
+                    {% if order.creator_display.company%}
                     <tr class="pb-2">
                       <th class="bg-light">Company:</th>
                       <td>{{ order.creator_display.company }}</td>
                     </tr>
+                    {% endif %}
                     <tr>
                       <th class="bg-light">Email:</th>
                       <td>{{ order.creator_display.email }}</td>
                     </tr>
+                    {% if order.creator_display.phone %}
                     <tr class="pb-2">
                       <th class="bg-light">Phone:</th>
                       <td>{{ order.creator_display.phone }}</td>
                     </tr>
+                    {% endif %}
                     {% if order.creator_display.gstin %}
                     <tr class="pb-2">
                       <th class="bg-light">GSTIN:</th>
@@ -173,7 +177,7 @@
                       {% csrf_token %}
                       <div class="row">
                         <div class="col-md-5">
-                          <label>Courier Name</label>
+                          <label class="form-label">Courier Name:</label>
                           <input type="text"
                                 name="courier"
                                 class="form-control"
@@ -181,7 +185,7 @@
                         </div>
 
                         <div class="col-md-5">
-                          <label>Tracking Number</label>
+                          <label class="form-label">Tracking Number:</label>
                           <input type="text"
                                 name="tracking_number"
                                 class="form-control"
@@ -310,11 +314,14 @@
                     <tr>
                       <th>Product</th>
                       <th>Qty</th>
-                      <th>Unit Price</th>
+                      <th>MRP</th>
+                      <th>Discount</th>
+                      <th>Final Unit</th>
                       <th>Tax(%)</th>
                       <th>Subtotal</th>
                       <th>GST</th>
                       <th>Total</th>
+
                     </tr>
                   </thead>
                   <tbody>
@@ -325,11 +332,24 @@
                         {{ item.product.name }}
                       </td>
                       <td>{{ item.qty }}</td>
-                      <td>{{ item.unit_price|floatformat:2 }}</td>
+                      <td>₹{{ item.unit_price|floatformat:2 }}</td>
+
+                      <td class="text-danger">
+                        - ₹{{ item.discount|floatformat:2 }}
+                      </td>
+
+                      <td class="text-success">
+                        ₹{{ item.final_unit_price|floatformat:2 }}
+                      </td>
+
                       <td>{{ item.gst_rate|floatformat:0 }}%</td>
-                      <td><strong>₹</strong>{{ item.base_amount|floatformat:2 }}</td>
-                      <td><strong>₹</strong>{{ item.gst_amount|floatformat:2 }}</td>
-                      <td><strong>₹</strong>{{ item.total_amount|floatformat:2 }}</td>
+
+                      <td>₹{{ item.base_amount|floatformat:2 }}</td>
+
+                      <td>₹{{ item.gst_amount|floatformat:2 }}</td>
+
+                      <td><strong>₹{{ item.total_amount|floatformat:2 }}</strong></td>
+
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -342,9 +362,10 @@
         <div class="col-12">
             <div class="mdc-card mt-3">
               <div class="header-title mb-2">
-                <h5>Order Summary</h5>
+                <h5 >Order Summary</h5>
               </div>
-              <table class="table">
+              <div class="table-responsive">
+                <table class="table">
                 <tr>
                   <th>Sub Total:</th>
                   <td class="text-end"><strong>₹</strong>{{ order.sub_total|floatformat:2 }}</td>
@@ -355,9 +376,10 @@
                 </tr>
                 <tr class="fw-bold">
                   <th>Grand Total:</th>
-                  <td class="text-end"><strong>₹</strong>{{ order.grand_total|floatformat:2 }}</td>
+                  <td class="text-end"><strong>₹{{ order.grand_total|floatformat:2 }}</strong></td>
                 </tr>
-              </table>
+                </table>
+              </div>
             </div>
         </div>    
       </div>

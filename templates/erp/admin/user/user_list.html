@@ -83,7 +83,7 @@
                                         <th>Email</th>
                                         <th>Status</th>
                                         {% if request.user.role == 'admin' or request.user.role == 'director' %}
-                                        <th>Actions</th>
+                                        <th class="text-center">Actions</th>
                                         {% endif %}
                                     </tr>
                                 </thead>
@@ -128,36 +128,47 @@
                                             {% endif %}
                                         </td>
                                         {% if request.user.role == 'admin' or director %}
-                                        <td>
-                                                                                         
-                                            <span class="d-flex align-items-center action">
-                                            {% if user.role == 'dealer' %}
-                                             <a href="{% url 'edit_dealer_details' user.pk %}" class="btn btn-primary text-white  me-2" title="Edit Vendor Detail">
-                                                <i class="fa fa-eye" aria-hidden="true"></i>
-                                            </a>
-                                            {% endif %}
-                                            {% if not user.is_suspended %}
-                                            <a href="{% url 'suspend_user' user.id %}"
-                                                class="btn btn-warning text-white  me-2">
-                                                <i class="fa fa-ban" aria-hidden="true"></i>
-                                            </a>
-                                            {% else %}
-                                            <a href="{% url 'resume_user' user.id %}"
-                                                class="btn btn-info text-white me-2">
-                                                <i class="fa fa-unlock" aria-hidden="true"></i>
-                                            </a>
-                                            {% endif %}
-                                                <button type="button" class="btn bg-success text-white me-2"
-                                                    data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}">
-                                                    <i class="fa fa-pencil"></i>
-                                                </button>
-                                                 <form action="{% url 'delete_user' user.id %}" method="POST">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn bg-danger text-white" onclick="return confirm('Are you sure ? you want to delete {{user.role}} account ?')">
-                                                        <i class="fa fa-trash-o"></i>
+
+                                        <td class="dropdown action">
+                                            <button type="button" class="dropdown-toggle" id="action" data-bs-toggle="dropdown" aria-expanded="false">:</button>
+                                                <ul class="dropdown-menu" aria-labelledby="action">
+                                                <li>
+                                                    <button type="button" class="btn dropdown-item"
+                                                                data-bs-toggle="modal" data-bs-target="#edit-user-{{user.id}}">
+                                                    <i class="fa fa-pencil bg-success text-white me-2"></i>
+                                                    Edit
                                                     </button>
-                                                </form>
-                                            </span>
+                                                </li>
+                                                <li>
+                                                    <form action="{% url 'delete_user' user.id %}" method="POST">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn dropdown-item" onclick="return confirm('Are you sure ? you want to delete {{user.role}} account ?')">
+                                                                    <i class="fa fa-trash-o bg-danger text-white me-2"></i>Delete
+                                                                </button>
+                                                            </form>
+                                                </li>
+                                                <li>
+                                                        {% if not user.is_suspended %}
+                                                        <a href="{% url 'suspend_user' user.id %}"
+                                                            class="btn dropdown-item">
+                                                            <i class="fa fa-ban bg-warning text-white me-2" aria-hidden="true"></i>Suspend
+                                                        </a>
+                                                        {% else %}
+                                                        <a href="{% url 'resume_user' user.id %}"
+                                                            class="btn dropdown-item">
+                                                            <i class="fa fa-unlock bg-info text-white me-2" aria-hidden="true"></i> Resume
+                                                        </a>
+                                                        {% endif %}
+                                                </li>
+                                                {% if user.role == 'dealer' %}
+                                                <li>
+                                                        <a href="{% url 'edit_dealer_details' user.pk %}" class="btn dropdown-item" title="Edit Vendor Detail">
+                                                            <i class="fa fa-eye bg-primary text-white me-2" aria-hidden="true"></i>Dealer Details
+                                                        </a>
+                                                </li>
+                                                {% endif %}
+
+                                                </ul>
                                         </td>
                                         {% endif %}
                                     </tr>

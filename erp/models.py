@@ -213,11 +213,16 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     qty = models.PositiveBigIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2,blank=True,default=0)
+    discount = models.DecimalField(max_digits=10, decimal_places=2,blank=True,default=0)
     gst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     @property
+    def final_unit_price(self):
+        return self.unit_price - self.discount
+    
+    @property
     def base_amount(self):
-        return self.qty * self.unit_price
+        return self.qty * self.final_unit_price
 
     @property
     def gst_amount(self):

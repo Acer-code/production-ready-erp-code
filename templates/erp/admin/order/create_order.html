@@ -24,8 +24,8 @@
         {% if request.user.role != 'dealer' %}
         <div class="col-12">
             <div class="mdc-card mb-4">
-              <h4 class="mb-4">Dealer</h4>
-              {{ order_form.dealer.label_tag }}
+              <h5 class="header-title mb-3">Dealer</h5>
+              <label for="id_dealer" class=" form-label">Select Dealer:</label>
               {{ order_form.dealer}}
             </div>
         </div>
@@ -34,34 +34,34 @@
         {# ================= CUSTOMER DETAILS ================= #}
         <div class="col-12">
           <div class="mdc-card mb-4">
-              <h4 class="mb-4">Customer Details</h4>
+              <h5 class="mb-4">Customer Details</h5>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="id_full_name">Full Name<span class="text-danger">*</span></label>
+                  <label for="id_full_name" class=" form-label">Full Name<span class="text-danger">*</span></label>
                   {{ order_form.full_name }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_phone">Phone<span class="text-danger">*</span></label>
+                  <label for="id_phone" class=" form-label">Phone<span class="text-danger">*</span></label>
                   {{ order_form.phone }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_email">Email<span class="text-danger">*</span></label>
+                  <label for="id_email" class=" form-label">Email<span class="text-danger">*</span></label>
                   {{ order_form.email }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="id_company_name">Company Name<span class="text-danger">*</span></label>
+                    <label for="id_company_name" class=" form-label">Company Name<span class="text-danger">*</span></label>
                   {{ order_form.company_name }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label for="id_gstin">GSTIN<span class="text-danger">*</span></label>
+                    <label for="id_gstin" class=" form-label">GST Number<span class="text-danger">*</span></label>
                   {{ order_form.gstin }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="id_payment_mode">Payment Mode<span class="text-danger">*</span></label>
+                    <label for="id_payment_mode" class=" form-label">Payment Mode<span class="text-danger">*</span></label>
                   {{ order_form.payment_mode }}
                 </div>
 
@@ -72,30 +72,30 @@
         {# ================= SHIPPING ADDRESS ================= #}
         <div class="col-12">
           <div class="mdc-card mb-4">
-              <h4 class="mb-4">Shipping Address</h4>
+              <h5 class="header-title mb-3">Shipping Address</h5>
               <div class="row">
                 <div class="col-12 mb-3">
-                  <label for="id_shipp_building">Building<span class="text-danger">*</span></label>
+                  <label for="id_shipp_building" class=" form-label">Building<span class="text-danger">*</span></label>
                   {{ order_form.shipp_building }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_shipp_zip">Pin Code<span class="text-danger">*</span></label>
+                  <label for="id_shipp_zip" class=" form-label">Pin Code<span class="text-danger">*</span></label>
                   {{ order_form.shipp_zip }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_shipp_city">City<span class="text-danger">*</span></label>
+                  <label for="id_shipp_city" class=" form-label">City<span class="text-danger">*</span></label>
                   {{ order_form.shipp_city }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_shipp_state">State<span class="text-danger">*</span></label>
+                  <label for="id_shipp_state" class=" form-label">State<span class="text-danger">*</span></label>
                   {{ order_form.shipp_state }}
                 </div>
 
                 <div class="col-md-6 mb-3">
-                  <label for="id_shipp_country">Country<span class="text-danger">*</span></label>
+                  <label for="id_shipp_country" class=" form-label">Country<span class="text-danger">*</span></label>
                   {{ order_form.shipp_country }}
                 </div>
             </div>
@@ -111,30 +111,30 @@
         {# ================= BILLING ADDRESS ================= #}
         <div class="col-12">
           <div class="mdc-card mb-4" id="billingSection">
-            <h4 class="mb-4">Billing Address</h4>
+            <h5 class="header-title mb-3">Billing Address</h5>
             <div class="row">
               <div class="col-12 mb-3">
-                <label for="id_bill_building">Building<span class="text-danger">*</span></label>
+                <label for="id_bill_building" class=" form-label">Building<span class="text-danger">*</span></label>
                 {{ order_form.bill_building }}
               </div>
 
               <div class="col-md-6 mb-3">
-                <label for="id_bill_zip">Pin Code<span class="text-danger">*</span></label>
+                <label for="id_bill_zip" class=" form-label">Pin Code<span class="text-danger">*</span></label>
                 {{ order_form.bill_zip }}
               </div>
 
               <div class="col-md-6 mb-3">
-                <label for="id_bill_city">City<span class="text-danger">*</span></label>
+                <label for="id_bill_city" class=" form-label">City<span class="text-danger">*</span></label>
                 {{ order_form.bill_city }}
               </div>
 
               <div class="col-md-6 mb-3">
-                <label for="id_bill_state">State<span class="text-danger">*</span></label>
+                <label for="id_bill_state" class=" form-label">State<span class="text-danger">*</span></label>
                 {{ order_form.bill_state }}
               </div>
 
               <div class="col-md-6 mb-3">
-                <label for="id_bill_country">Country<span class="text-danger">*</span></label>
+                <label for="id_bill_country" class=" form-label">Country<span class="text-danger">*</span></label>
                 {{ order_form.bill_country }}
               </div>
             </div>
@@ -143,52 +143,68 @@
 
         {# ================= ADD PRODUCTS ================= #}
         <div class="col-12">
-            <h4 class="mb-4">Add Products</h4>
+            <div class="mdc-card mb-4">
+              <h5 class="header-title mb-3">Add Products</h5>
 
-          <div class="row mb-3">
-            <div class="col-md-7 col-6">
-              <select id="product_select" class="form-select form-control">
-                <option value="">Select Product</option>
-                {% for product in products %}
-                <option value="{{ product.id }}"
-                        data-price="{{ product.price }}"
-                        data-gst="{{ product.tax }}">
-                  {{ product.name }}{% if product.product_model %} - {{ product.product_model }}{% endif %}
-                </option>
-                {% endfor %}
-              </select>
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label for="product_select" class=" form-label">Product<span class="text-danger">*</span></label>
+                  <select id="product_select" class="form-select form-control">
+                    <option value="">Select Product</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}"
+                            data-price="{{ product.price }}"
+                            data-gst="{{ product.tax }}">
+                      {{ product.name }}{% if product.product_model %} - {{ product.product_model }}{% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="col-md-2">
+                  <label for="product_qty" class=" form-label">Quantity<span class="text-danger">*</span></label>
+                  <input type="number" id="product_qty" value="1" min="1" class="form-control">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">MRP<span class="text-danger">*</span></label>
+                  <input type="text" id="product_price" class="form-control bg-white" readonly>
+                </div>
+
+                <div class="col-md-2">
+                  <label for="product_discount" class=" form-label">Discount <span class="">(if any)</span></label>
+                  <input type="number" id="product_discount" value="0" min="0" class="form-control">
+                </div>
+
+                <div class="col-md-2 mt-4">
+                  <button type="button" id="addProduct"
+                          class="form-control bg-success text-white">
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {# ================= PRODUCT TABLE ================= #}
+              <div class="table-responsive mb-4">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>MRP</th>
+                      <th>Discount</th>
+                      <th>Final Unit</th>
+                      <th>Subtotal</th>
+                      <th>Tax(%)</th>
+                      <th>GST</th>
+                      <th>Total</th>
+
+                      <th class="space">Remove</th>
+                    </tr>
+                  </thead>
+                  <tbody id="itemsBody"></tbody>
+                </table>
+              </div>
             </div>
-
-            <div class="col-md-3 col-3">
-              <input type="number" id="product_qty" value="1" min="1" class="form-control">
-            </div>
-
-            <div class="col-md-2 col-3">
-              <button type="button" id="addProduct"
-                      class="form-control bg-success text-white">
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {# ================= PRODUCT TABLE ================= #}
-        <div class="col-12">
-          <div class="table-responsive mb-4">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Qty</th>
-                  <th>Unit Price</th>
-                  <th>GST%</th>
-                  <th>Total</th>
-                  <th class="space">Remove</th>
-                </tr>
-              </thead>
-              <tbody id="itemsBody"></tbody>
-            </table>
-          </div>
         </div>
 
         {{ formset.management_form }}
@@ -196,10 +212,24 @@
         {# ================= TOTALS ================= #}
         <div class="col-12">
             <div class="mdc-card mb-4">
-            <h4 class="mb-4">Order Summary</h4>
-            <p>Subtotal: ₹<span id="subtotal">0.00</span></p>
-            <p>GST: ₹<span id="gst">0.00</span></p>
-            <p><strong>Grand Total: ₹<span id="grand">0.00</span></strong></p>
+            <h5 class="header-title mb-3">Order Summary</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <tbody><tr>
+                      <th>Sub Total:</th>
+                      <td class="text-end"><strong>₹</strong><span id="subtotal">0.00</span></td>
+                    </tr>
+                    <tr>
+                      <th>Tax Total:</th>
+                      <td class="text-end"><strong>₹</strong><span id="gst">0.00</span></td>
+                    </tr>
+                    <tr class="fw-bold">
+                      <th>Grand Total:</th>
+                      <td class="text-end"><strong>₹<span id="grand">0.00</span></strong></td>
+                    </tr>
+                  </tbody></table>
+            </div>
+    
           </div>
         </div>
 
@@ -272,6 +302,14 @@ document.addEventListener("DOMContentLoaded", function () {
 let formIndex = 0;
 let subtotal = 0, gstTotal = 0;
 
+document.getElementById('product_select').addEventListener('change', function () {
+    const option = this.selectedOptions[0];
+    if (!option) return;
+
+    const price = option.dataset.price || 0;
+    document.getElementById('product_price').value = price;
+});
+
 document.getElementById('addProduct').addEventListener('click', () => {
     const select = document.getElementById('product_select');
     const qty = parseInt(document.getElementById('product_qty').value);
@@ -283,14 +321,29 @@ document.getElementById('addProduct').addEventListener('click', () => {
     const productId = select.value;
     const productName = select.selectedOptions[0].text;
 
-    const base = unitPrice * qty;
+    // const discount = parseFloat(prompt("Discount per unit?", "0")) || 0;
+    const discount = parseFloat(
+    document.getElementById('product_discount').value
+    ) || 0;
+
+
+    if (discount < 0 || discount >= unitPrice) {
+        alert("Discount must be between 0 and unit price");
+        document.getElementById('product_discount').value = 0;
+        return;
+    }
+
+    const finalUnit = unitPrice - discount;
+    const base = finalUnit * qty;
     const gst = base * gstRate / 100;
     const total = base + gst;
+
 
     subtotal += base;
     gstTotal += gst;
 
     document.getElementById('subtotal').innerText = subtotal.toFixed(2);
+    // document.getElementById('discount').innerText = discount.toFixed(2);
     document.getElementById('gst').innerText = gstTotal.toFixed(2);
     document.getElementById('grand').innerText = (subtotal + gstTotal).toFixed(2);
 
@@ -302,9 +355,19 @@ document.getElementById('addProduct').addEventListener('click', () => {
         <td>${qty}
           <input type="hidden" name="items-${formIndex}-qty" value="${qty}">
         </td>
-        <td>₹${unitPrice.toFixed(2)}</td>
+        <td><strong>₹</strong>${unitPrice.toFixed(2)}</td>
+        <td class="text-danger"><strong>-₹</strong>${discount.toFixed(2)}
+          <input type="hidden" name="items-${formIndex}-discount" value="${discount}">
+        </td>
+        <td class="text-success"><strong>₹</strong>${finalUnit.toFixed(2)}</td>
+        
+        <td><strong>₹</strong>${base.toFixed(2)}</td>
+
         <td>${gstRate}%</td>
-        <td>₹${total.toFixed(2)}</td>
+
+        <td><strong>₹</strong>${gst.toFixed(2)}</td>
+
+        <td><strong>₹</strong>${total.toFixed(2)}</td>
         <td>
           <button type="button"
                   onclick="removeRow(${formIndex}, ${base}, ${gst})"
@@ -322,6 +385,8 @@ document.getElementById('addProduct').addEventListener('click', () => {
 
     select.value = '';
     document.getElementById('product_qty').value = 1;
+    document.getElementById('product_discount').value = 0;
+    document.getElementById('product_price').value = 0;
 });
 
 function removeRow(index, base, gst) {

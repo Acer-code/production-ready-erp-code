@@ -69,6 +69,7 @@ def request_spare_parts(request, service_id):
                 request,
                 f"Spare '{name}' already added."
             )
+            
             continue
 
         # CREATE AS REQUESTED (IMPORTANT FIX)
@@ -252,7 +253,6 @@ def approve_spare_return(request, return_id):
     return HttpResponseForbidden()
 
 # =========================
-
 @role_required('employee:engineer')
 def engineer_dashboard(request):
     user = request.user

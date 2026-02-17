@@ -47,6 +47,7 @@ class StockForm(forms.ModelForm):
 
 
 class OrderForm(forms.ModelForm):
+    
     # checkbox for telling billing is same as shipping
     billing_same_as_shipping =forms.BooleanField(
         required=False,
@@ -122,6 +123,11 @@ class OrderForm(forms.ModelForm):
 
 class OrderItemForm(forms.ModelForm):
     product = forms.ModelChoiceField(queryset=Product.objects.all(), empty_label='select product',widget=forms.Select(attrs={'class':'form-control'}))
+    discount = forms.DecimalField(
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={'class':'form-control','min':0})
+    )
     qty = forms.IntegerField(
         initial=1,
         min_value=1,
@@ -130,7 +136,7 @@ class OrderItemForm(forms.ModelForm):
     class Meta:
         model = OrderItem
         fields =[
-            'product','qty'
+            'product','qty','discount'
         ]
        
 OrderItemFormSet = inlineformset_factory(Order, OrderItem, form=OrderItemForm, extra=0, can_delete=True)
