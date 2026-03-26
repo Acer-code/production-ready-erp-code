@@ -18,7 +18,7 @@
              </div>
 
             <!-- FORM CARD -->
-                <div class="mdc-card p-4">
+            <div class="mdc-card p-4">
 
                 <form method="post" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
@@ -46,8 +46,7 @@
                                     col-md-6
                                 {% endif %}
                                 mb-3
-                            "
-                        >
+                            ">
                             {% if field.name != 'warranty' %}
                             <label class="form-label fw-500" for="{{ field.id_for_label }}">
                                 {{ field.label }}
@@ -97,98 +96,98 @@
     </main>
 </div>
 <script>
-const orderSelect = document.getElementById("id_order_item");
+    const orderSelect = document.getElementById("id_order_item");
 
-const pname = document.getElementById("id_product_name");
-const pmodel = document.getElementById("id_product_model");
-const pserial = document.getElementById("id_product_serial");
-const fullName = document.getElementById("id_full_name");
-const company = document.getElementById("id_company_name");
-const gstin = document.getElementById("id_gstin");
-const phone = document.getElementById("id_phone");
-const purchaseDate = document.getElementById("id_purchase_date");
+    const pname = document.getElementById("id_product_name");
+    const pmodel = document.getElementById("id_product_model");
+    const pserial = document.getElementById("id_product_serial");
+    const fullName = document.getElementById("id_full_name");
+    const company = document.getElementById("id_company_name");
+    const gstin = document.getElementById("id_gstin");
+    const phone = document.getElementById("id_phone");
+    const purchaseDate = document.getElementById("id_purchase_date");
 
-const warranty = document.getElementById("id_warranty");
-const paymentWrap = document.getElementById("wrap_payment_mode");
-const purchaseWrap = document.getElementById("wrap_purchase_date");
-const warrantyFileWrap = document.getElementById("wrap_proof_of_warranty");
+    const warranty = document.getElementById("id_warranty");
+    const paymentWrap = document.getElementById("wrap_payment_mode");
+    const purchaseWrap = document.getElementById("wrap_purchase_date");
+    const warrantyFileWrap = document.getElementById("wrap_proof_of_warranty");
 
-orderSelect.onchange = function () {
-    if (this.value) {
-        fetch(`/service/api/order-item/${this.value}/`)
-            .then(res => res.json())
-            .then(d => {
-                pname.value = d.product_name || '';
-                pmodel.value = d.product_model || '';
-                fullName.value = d.full_name || '';
-                company.value = d.company_name || '';
-                gstin.value = d.gstin || '';
-                phone.value = d.phone || '';
-                purchaseDate.value = d.purchase_date || '';
+    orderSelect.onchange = function () {
+        if (this.value) {
+            fetch(`/service/api/order-item/${this.value}/`)
+                .then(res => res.json())
+                .then(d => {
+                    pname.value = d.product_name || '';
+                    pmodel.value = d.product_model || '';
+                    fullName.value = d.full_name || '';
+                    company.value = d.company_name || '';
+                    gstin.value = d.gstin || '';
+                    phone.value = d.phone || '';
+                    purchaseDate.value = d.purchase_date || '';
 
-                // Lock fields when auto-filled
-                // [pname, pmodel, fullName, company, gstin, phone, purchaseDate].forEach(el => {
-                //     el.readOnly = true;
-                // });
+                    // Lock fields when auto-filled
+                    // [pname, pmodel, fullName, company, gstin, phone, purchaseDate].forEach(el => {
+                    //     el.readOnly = true;
+                    // });
+                });
+        } else {
+            // Manual mode
+            [pname, pmodel, fullName, company, gstin, phone, purchaseDate].forEach(el => {
+                el.value = '';
+                el.readOnly = false;
             });
-    } else {
-        // Manual mode
-        [pname, pmodel, fullName, company, gstin, phone, purchaseDate].forEach(el => {
-            el.value = '';
-            el.readOnly = false;
-        });
+        }
+    };
+
+    const paymentLabel = document.querySelector('label[for="id_payment_mode"]');
+    const warrantyLabel = document.querySelector('label[for="id_proof_of_warranty"]');
+
+    function addStar(label) {
+        if (label && !label.querySelector('.req-star')) {
+            label.innerHTML += ' <span class="text-danger req-star">*</span>';
+        }
     }
-};
 
-const paymentLabel = document.querySelector('label[for="id_payment_mode"]');
-const warrantyLabel = document.querySelector('label[for="id_proof_of_warranty"]');
-
-function addStar(label) {
-    if (label && !label.querySelector('.req-star')) {
-        label.innerHTML += ' <span class="text-danger req-star">*</span>';
+    function removeStar(label) {
+        label?.querySelector('.req-star')?.remove();
     }
-}
 
-function removeStar(label) {
-    label?.querySelector('.req-star')?.remove();
-}
+    function toggleWarrantyLayout() {
+        if (warranty.checked) {
+            removeStar(paymentLabel);
+            // Hide payment mode
+            paymentWrap.style.display = "none";
 
-function toggleWarrantyLayout() {
-    if (warranty.checked) {
-        removeStar(paymentLabel);
-        // Hide payment mode
-        paymentWrap.style.display = "none";
+            // Purchase date full width
+            purchaseWrap.classList.remove("col-md-6");
+            purchaseWrap.classList.add("col-md-12");
 
-        // Purchase date full width
-        purchaseWrap.classList.remove("col-md-6");
-        purchaseWrap.classList.add("col-md-12");
+            // Warranty file full width + show
+            warrantyFileWrap.style.display = "block";
+            warrantyFileWrap.classList.remove("col-md-6");
+            warrantyFileWrap.classList.add("col-md-12");
+        } else {
+            addStar(paymentLabel);
 
-        // Warranty file full width + show
-        warrantyFileWrap.style.display = "block";
-        warrantyFileWrap.classList.remove("col-md-6");
-        warrantyFileWrap.classList.add("col-md-12");
-    } else {
-        addStar(paymentLabel);
+            // Show payment mode
+            paymentWrap.style.display = "block";
 
-        // Show payment mode
-        paymentWrap.style.display = "block";
+            // Purchase date half width
+            purchaseWrap.classList.remove("col-md-12");
+            purchaseWrap.classList.add("col-md-6");
 
-        // Purchase date half width
-        purchaseWrap.classList.remove("col-md-12");
-        purchaseWrap.classList.add("col-md-6");
+            // Hide warranty file
+            warrantyFileWrap.style.display = "none";
 
-        // Hide warranty file
-        warrantyFileWrap.style.display = "none";
-
-        // Optional: reset warranty file width
-        warrantyFileWrap.classList.remove("col-md-12");
-        warrantyFileWrap.classList.add("col-md-6");
+            // Optional: reset warranty file width
+            warrantyFileWrap.classList.remove("col-md-12");
+            warrantyFileWrap.classList.add("col-md-6");
+        }
     }
-}
 
-warranty.addEventListener("change", toggleWarrantyLayout);
+    warranty.addEventListener("change", toggleWarrantyLayout);
 
-toggleWarrantyLayout(); // on page load
+    toggleWarrantyLayout(); // on page load
 </script>
 
 {% endblock %}

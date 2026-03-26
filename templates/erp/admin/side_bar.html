@@ -113,13 +113,45 @@
                 </div>
             </div>
             {% endif %}
+
             {% if request.user.sub_employee_role != 'inventory' and request.user.sub_employee_role != 'dispatch' %}
-            <div class="mdc-list-item mdc-drawer-item">
-                <a class="mdc-drawer-link {% if request.resolver_match.url_name == 'service_list' or request.resolver_match.url_name == 'raise_service' or request.resolver_match.url_name == 'service_detail' %}active{% endif %}" href="{% url 'service_list' %}">
-                    <i class="mdi mdi-tools mdc-list-item__start-detail mdc-drawer-item-icon"
-                        aria-hidden="true"></i>
+            <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                <a class="mdc-expansion-panel-link {% if request.resolver_match.url_name == 'service_list' or request.resolver_match.url_name == 'raise_service' or request.resolver_match.url_name == 'service_detail' or request.resolver_match.url_name == 'sparepart_list' or request.resolver_match.url_name == 'spare_inventory' %}active{% endif %}
+                " href="#" data-toggle="expansionPanel" data-target="service-page-submenu" tabindex="-1">
+                <i class="mdi mdi-cogs mdc-list-item__start-detail mdc-drawer-item-icon" aria-hidden="true"></i>
                     Service
+                    <i class="mdc-drawer-arrow material-icons">chevron_right</i>
                 </a>
+                <div class="mdc-expansion-panel" id="service-page-submenu">
+                    <nav class="mdc-list mdc-drawer-submenu">
+                        {% if request.user.sub_employee_role != 'inventory' and request.user.sub_employee_role != 'dispatch' %}
+                        <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                            <a class="mdc-drawer-link {% if request.resolver_match.url_name == 'service_list' %}active{% endif %}" href="{% url 'service_list' %}" tabindex="-1">
+                                View Service
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if request.user.role == 'admin' or request.user.role == 'dealer'  or request.user.sub_employee_role == 'sales' %}
+                        <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                            <a class="mdc-drawer-link {% if request.resolver_match.url_name == 'raise_service' %}active{% endif %}" href="{% url 'raise_service' %}" tabindex="-1">
+                                Raise Service
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% if request.user.role == 'admin' or request.user.role == 'director' or request.user.sub_employee_role == 'service' %}
+                        <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                            <a class="mdc-drawer-link {% if request.resolver_match.url_name == 'sparepart_list' %}active{% endif %}" href="{% url 'sparepart_list' %}" tabindex="-1">
+                            Spare Parts
+                            </a>
+                        </div>
+                        <div class="mdc-list-item mdc-drawer-item" tabindex="-1">
+                            <a class="mdc-drawer-link {% if request.resolver_match.url_name == 'spare_inventory' %}active{% endif %}" href="{% url 'spare_inventory' %}" tabindex="-1">
+                            Spare Inventory
+                            </a>
+                        </div>
+                        {% endif %}
+                    </nav>
+                </div>
             </div>
             {% endif%}
         </nav>

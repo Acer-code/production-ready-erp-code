@@ -78,8 +78,8 @@ class LoginForm(forms.Form):
             'placeholder': 'Password'
         })
     )
-    # role = forms.ChoiceField(choices = User.ROLE_CHOICES, widget = forms.Select(attrs={'class':'form-control'}))
-    # sub_employee_role = forms.ChoiceField(required=False,choices = User.SUB_EMPLOYEE_CHOICES, widget = forms.Select(attrs={'class':'form-control'}))
+    role = forms.ChoiceField(choices = User.ROLE_CHOICES, widget = forms.Select(attrs={'class':'form-control'}))
+    sub_employee_role = forms.ChoiceField(required=False,choices = User.SUB_EMPLOYEE_CHOICES, widget = forms.Select(attrs={'class':'form-control'}))
     # email = forms.EmailField(widget=forms.EmailInput(attrs={'class':'form-control','placeholder':'Email'}))
     # password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control','placeholder':'Password'}))
 

@@ -1,19 +1,20 @@
+from django.db import models
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import HttpResponseForbidden, JsonResponse
 from erp.decorators import role_required
 from .models import (
-    SparePartReturn, SparePartRequest,
+    SparePart, SparePartReturn, SparePartRequest,
     ServiceRequest, ServiceSparePart,ServiceAttachment,
-    ServiceClosure,ServiceFeedback,ServiceLog,ServiceStatusHistory
+    ServiceClosure,ServiceFeedback,ServiceLog,ServiceStatusHistory, SparePartStock
 )
 from accounts.models import User
 from django.http import HttpResponseForbidden
-from .forms import ServiceRequestForm
+from .forms import ServiceRequestForm, SparePartForm
 from erp.models import OrderItem, Product
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db import transaction
 from erp.pagination import paginate_queryset
 import traceback
@@ -21,23 +22,18 @@ import traceback
 # Create your views here.
 # =========================
 
-# REQUEST SPARE PARTS (ENGINEER)
 @role_required('employee:engineer')
 def request_spare_parts(request, service_id):
+
     service = get_object_or_404(
         ServiceRequest,
         pk=service_id,
         assigned_engineer=request.user
     )
 
-    # =========================
-    # START: BLOCK REJECTED SERVICE
-    # =========================
     if service.approval_status == 'rejected':
-        messages.error(request, "This service request is rejected and is locked. No further actions are allowed.")
+        messages.error(request,"This service request is rejected and locked.")
         return redirect(request.META.get('HTTP_REFERER'))
-    # =========================
-    # END: BLOCK REJECTED SERVICE
 
     if request.method != 'POST':
         return HttpResponseForbidden()
@@ -47,67 +43,156 @@ def request_spare_parts(request, service_id):
     quantities = request.POST.getlist('quantity')
 
     if not part_names:
-        messages.error(request, "Please add at least one spare part.")
+        messages.error(request, "Please select at least one spare part.")
         return redirect(request.META.get('HTTP_REFERER'))
 
     added = False
 
-    for i in range(len(part_names)):
-        name = part_names[i].strip()
-        qty = quantities[i]
+    try:
+        with transaction.atomic():
 
-        if not name or not qty:
-            continue
+            for name, number, qty in zip(part_names, part_numbers, quantities):
 
-        # PREVENT DUPLICATE (draft + requested)
-        if SparePartRequest.objects.filter(
-            service_request=service,
-            part_name__iexact=name,
-            status__in=['draft', 'requested']
-        ).exists():
-            messages.warning(
-                request,
-                f"Spare '{name}' already added."
-            )
-            
-            continue
+                if not name or not qty:
+                    continue
 
-        # CREATE AS REQUESTED (IMPORTANT FIX)
-        SparePartRequest.objects.create(
-            service_request=service,
-            requested_by=request.user,
-            part_name=name,
-            part_number=part_numbers[i],
-            quantity=int(qty),
-            status='requested'
-        )
+                spare = SparePart.objects.filter(part_name=name).first()
 
-        added = True
+                if not spare:
+                    continue
 
-    if not added:
-        messages.error(request, "No valid spare parts were added.")
+                if SparePartRequest.objects.filter(
+                    service_request=service,
+                    spare_part=spare,
+                    status__in=['draft', 'requested']
+                ).exists():
+                    continue
+
+                SparePartRequest.objects.create(
+                    service_request=service,
+                    requested_by=request.user,
+                    spare_part=spare,
+                    part_number=number,
+                    quantity=int(qty),
+                    status='requested'
+                )
+
+                added = True
+
+            if not added:
+                raise ValueError("No valid spare parts were added.")
+
+            if service.status == 'assigned':
+                old_status = service.status
+                service.status = 'waiting_spare'
+                service.updated_by = request.user
+                service.save(update_fields=['status', 'updated_by'])
+
+                ServiceStatusHistory.objects.create(
+                    service_request=service,
+                    old_status=old_status,
+                    new_status='waiting_spare',
+                    changed_by=request.user
+                )
+
+    except Exception as e:
+        messages.error(request, str(e))
         return redirect(request.META.get('HTTP_REFERER'))
-
-    # UPDATE SERVICE STATUS ONLY ONCE
-    if service.status == 'assigned':
-        old_status = service.status
-        service.status = 'waiting_spare'
-        service.updated_by = request.user
-        service.save(update_fields=['status', 'updated_by'])
-
-        ServiceStatusHistory.objects.create(
-            service_request=service,
-            old_status=old_status,
-            new_status='waiting_spare',
-            changed_by=request.user
-        )
 
     messages.success(request, "Spare parts requested successfully.")
     return redirect(request.META.get('HTTP_REFERER'))
 
+# REQUEST SPARE PARTS (ENGINEER)
+# @role_required('employee:engineer')
+# def request_spare_parts(request, service_id):
+#     service = get_object_or_404(
+#         ServiceRequest,
+#         pk=service_id,
+#         assigned_engineer=request.user
+#     )
+
+#     # =========================
+#     # START: BLOCK REJECTED SERVICE
+#     # =========================
+#     if service.approval_status == 'rejected':
+#         messages.error(request, "This service request is rejected and is locked. No further actions are allowed.")
+#         return redirect(request.META.get('HTTP_REFERER'))
+#     # =========================
+#     # END: BLOCK REJECTED SERVICE
+
+#     if request.method != 'POST':
+#         return HttpResponseForbidden()
+
+#     part_names = request.POST.getlist('part_name')
+#     part_numbers = request.POST.getlist('part_number')
+#     quantities = request.POST.getlist('quantity')
+
+#     if not part_names:
+#         messages.error(request, "Please add at least one spare part.")
+#         return redirect(request.META.get('HTTP_REFERER'))
+
+#     added = False
+
+#     for i in range(len(part_names)):
+#         name = part_names[i].strip()
+#         qty = quantities[i]
+
+#         if not name or not qty:
+#             continue
+
+#         # PREVENT DUPLICATE (draft + requested)
+#         if SparePartRequest.objects.filter(
+#             service_request=service,
+#             part_name__iexact=name,
+#             status__in=['draft', 'requested']
+#         ).exists():
+#             messages.warning(
+#                 request,
+#                 f"Spare '{name}' already added."
+#             )
+            
+#             continue
+
+#         # CREATE AS REQUESTED (IMPORTANT FIX)
+#         SparePartRequest.objects.create(
+#             service_request=service,
+#             requested_by=request.user,
+#             part_name=name,
+#             part_number=part_numbers[i],
+#             quantity=int(qty),
+#             status='requested'
+#         )
+
+#         added = True
+
+#     if not added:
+#         messages.error(request, "No valid spare parts were added.")
+#         return redirect(request.META.get('HTTP_REFERER'))
+
+#     # UPDATE SERVICE STATUS ONLY ONCE
+#     if service.status == 'assigned':
+#         old_status = service.status
+#         service.status = 'waiting_spare'
+#         service.updated_by = request.user
+#         service.save(update_fields=['status', 'updated_by'])
+
+#         ServiceStatusHistory.objects.create(
+#             service_request=service,
+#             old_status=old_status,
+#             new_status='waiting_spare',
+#             changed_by=request.user
+#         )
+
+#     messages.success(request, "Spare parts requested successfully.")
+#     return redirect(request.META.get('HTTP_REFERER'))
+
 @role_required('admin', 'employee:service')
 def dispatch_spare_part(request, request_id):
-    spare_request = get_object_or_404(SparePartRequest, pk=request_id)
+    spare_request = get_object_or_404(
+    SparePartRequest,
+    pk=request_id,
+    status='requested'
+    )
     service = spare_request.service_request
 
     # =========================
@@ -119,14 +204,53 @@ def dispatch_spare_part(request, request_id):
     # =========================
     # END: BLOCK REJECTED SERVICE
 
+    # if request.method == 'POST':
+    #     spare_request.courier_partner = request.POST.get('courier_partner')
+    #     spare_request.docket_number = request.POST.get('docket_number')
+    #     spare_request.status = 'dispatched'
+    #     spare_request.dispatched_at = timezone.now()
+    #     spare_request.save()
+
+    #     messages.success(request, "Spare part dispatched to engineer")
+    #     return redirect(request.META.get('HTTP_REFERER'))
+
     if request.method == 'POST':
+
         spare_request.courier_partner = request.POST.get('courier_partner')
         spare_request.docket_number = request.POST.get('docket_number')
+
+        spare = spare_request.spare_part
+        stock = spare.sparepartstock
+
+        required_qty = spare_request.quantity
+        current_stock = stock.current_quantity
+
+        # Case 1: No stock
+        if current_stock == 0:
+            messages.error(
+                request,
+                f"{spare.part_name} is out of stock. Dispatch not allowed."
+            )
+            return redirect(request.META.get('HTTP_REFERER'))
+
+        # Case 2: Stock less than required
+        if current_stock < required_qty:
+            messages.error(
+                request,
+                f"Only {current_stock} units of {spare.part_name} available. "
+                f"Requested quantity is {required_qty}."
+            )
+            return redirect(request.META.get('HTTP_REFERER'))
+
+        # Case 3: Enough stock → deduct
+        stock.current_quantity -= required_qty
+        stock.save()
+
         spare_request.status = 'dispatched'
         spare_request.dispatched_at = timezone.now()
         spare_request.save()
 
-        messages.success(request, "Spare part dispatched to engineer")
+        messages.success(request, "Spare part dispatched successfully.")
         return redirect(request.META.get('HTTP_REFERER'))
 
     return HttpResponseForbidden()
@@ -172,12 +296,20 @@ def receive_spare_part(request, request_id):
         # Create actual ServiceSparePart record
         ServiceSparePart.objects.create(
             service_request=spare_request.service_request,
-            part_name=spare_request.part_name,
-            part_number=spare_request.part_number,
+            part_name=spare_request.spare_part.part_name,
+            part_number=spare_request.spare_part.part_number,
             quantity=spare_request.quantity,
             status='assigned',
             assigned_at=timezone.now()
         )
+        # ServiceSparePart.objects.create(
+        #     service_request=spare_request.service_request,
+        #     part_name=spare_request.part_name,
+        #     part_number=spare_request.part_number,
+        #     quantity=spare_request.quantity,
+        #     status='assigned',
+        #     assigned_at=timezone.now()
+        # )
 
     messages.success(request, "Spare part received successfully")
     return redirect(request.META.get('HTTP_REFERER'))
@@ -230,11 +362,31 @@ def approve_spare_return(request, return_id):
     if request.method == 'POST':
         decision = request.POST.get('decision')
 
+        # if decision == 'approve':
+        #     spare_return.status = 'approved'
+        #     spare_return.approved_at = timezone.now()
+
+        #     # Update spare parts
+        #     spare_return.service_request.spare_parts.filter(
+        #         status='assigned'
+        #     ).update(
+        #         status='returned',
+        #         returned_at=timezone.now()
+        #     )
         if decision == 'approve':
+
             spare_return.status = 'approved'
             spare_return.approved_at = timezone.now()
 
-            # Update spare parts
+            spare = SparePart.objects.filter(
+                part_name=spare_return.part_name
+            ).first()
+
+            if spare:
+                stock = spare.sparepartstock
+                stock.current_quantity += int(spare_return.quantity)
+                stock.save()
+
             spare_return.service_request.spare_parts.filter(
                 status='assigned'
             ).update(
@@ -257,7 +409,7 @@ def approve_spare_return(request, return_id):
 def engineer_dashboard(request):
     user = request.user
 
-    # ================= METRICS =================
+    #================= METRICS =================
 
     open_service_requests = ServiceRequest.objects.filter(
         assigned_engineer=user
@@ -601,7 +753,6 @@ def close_service(request, pk):
 # =========================
 # SERVICE DETAIL (ADMIN)
 # =========================
-
 @role_required('admin', 'director', 'dealer', 'employee:service','employee:engineer', 'employee:sales')
 def service_detail(request, pk):
     user = request.user
@@ -686,6 +837,13 @@ def service_detail(request, pk):
     for status in status_flow:
         log = service.status_history.filter(new_status=status).order_by('changed_at').first()
         status_logs[status] = log
+
+    # ---------- SPARE PART INVENTORY (FOR DROPDOWN) ----------
+    spare_parts = SparePart.objects.select_related(
+    'sparepartstock'
+    ).filter(
+        sparepartstock__current_quantity__gt=0
+    ).order_by('part_name')
     # ---------- CONTEXT ----------
     context = {
         'service': service,
@@ -693,7 +851,7 @@ def service_detail(request, pk):
         'order_item': order_item,
         'customer': customer,
         'order_creator': order_creator,
-
+        'spare_parts':spare_parts,
         'logs': service.service_logs.order_by('created_at'),
         'is_engineer': is_engineer,
         'is_dealer': is_dealer,
@@ -713,6 +871,7 @@ def service_detail(request, pk):
 
     return render(request, 'services/admin/service_detail.html', context)
 
+# Approve or Reject Service
 @role_required('admin', 'employee:service')
 def approve_reject_service(request, pk):
     service = get_object_or_404(ServiceRequest, pk=pk)
@@ -757,6 +916,7 @@ def approve_reject_service(request, pk):
 
     return redirect('service_detail', pk=pk)
 
+# Service Dashboard
 @role_required('employee:service')
 def service_dashboard(request):
     # ================= METRICS =================
@@ -773,3 +933,208 @@ def service_dashboard(request):
     }
 
     return render(request, 'services/service_dashboard.html', context)
+
+# Spare Part List 
+@role_required('employee:service', 'admin', 'director')
+def sparepart_list(request):
+
+    search_query = request.GET.get("q")
+    status = request.GET.get("status")
+
+    # Base queryset
+    stocks = SparePartStock.objects.select_related("spare_part").all()
+
+    # Search
+    if search_query:
+        stocks = stocks.filter(
+            Q(spare_part__part_name__icontains=search_query) |
+            Q(spare_part__part_number__icontains=search_query)
+        )
+
+    # Status Filter
+    if status == "low":
+        stocks = stocks.filter(
+            current_quantity__lte=F("min_stock_level"),
+            current_quantity__gt=0
+        )
+
+    elif status == "out":
+        stocks = stocks.filter(current_quantity=0)
+
+    elif status == "ok":
+        stocks = stocks.filter(
+            current_quantity__gt=F("min_stock_level")
+        )
+
+    # Get related spare parts
+    spare_parts = SparePart.objects.filter(
+        id__in=stocks.values_list("spare_part_id", flat=True)
+    ).order_by("-id")
+
+    # Pagination
+    page_obj = paginate_queryset(request, spare_parts, 10)
+
+    return render(
+        request,
+        "services/admin/sparepart_list.html",
+        {
+            "spare_parts": page_obj,
+            "page_obj": page_obj,
+            "search_query": search_query,
+            "status": status
+        }
+    )
+
+# @role_required('employee:service', 'admin','director')
+# def sparepart_list(request):
+
+#     stock_status = request.GET.get('stock_status')
+
+#     spare_parts = SparePart.objects.select_related().all()
+
+#     stocks = SparePartStock.objects.select_related('spare_part')
+
+#     if stock_status == 'in':
+#         stocks = stocks.filter(
+#             current_quantity__gt=F('min_stock_level')
+#         )
+
+#     elif stock_status == 'low':
+#         stocks = stocks.filter(
+#             current_quantity__lte=F('min_stock_level'),
+#             current_quantity__gt=0
+#         )
+
+#     elif stock_status == 'out':
+#         stocks = stocks.filter(current_quantity=0)
+
+#     spare_parts = spare_parts.filter(
+#         id__in=stocks.values_list('spare_part_id', flat=True)
+#     ).order_by('-id')
+
+#     page_obj = paginate_queryset(request, spare_parts, 10)
+
+#     return render(
+#         request,
+#         "services/admin/sparepart_list.html",
+#         {
+#             "spare_parts": page_obj,
+#             "page_obj": page_obj,
+#             "stock_status": stock_status
+#         }
+#     )
+
+# ADD SPARE PART
+@role_required('employee:service','admin')
+def add_spare_part(request):
+
+    if request.method == "POST":
+
+        part_name = request.POST.get("part_name")
+        part_number = request.POST.get("part_number")
+        price = request.POST.get("price")
+        SparePart.objects.create(
+            part_name=part_name,
+            part_number=part_number,
+            price=price,
+        )
+
+        messages.success(request, "Spare part added successfully")
+
+    return redirect("sparepart_list")
+
+
+# UPDATE SPARE PART
+@role_required('employee:service','admin')
+def update_spare_part(request, id):
+
+    spare = get_object_or_404(SparePart, id=id)
+
+    if request.method == "POST":
+
+        spare.part_name = request.POST.get("part_name")
+        spare.part_number = request.POST.get("part_number")
+        spare.price = request.POST.get("price")
+
+        spare.save()
+
+        messages.success(request, "Spare part updated successfully")
+
+    return redirect("sparepart_list")
+
+
+# DELETE SPARE PART
+@role_required('employee:service','admin')
+def delete_spare_part(request, id):
+
+    spare = get_object_or_404(SparePart, id=id)
+
+    spare.delete()
+
+    messages.success(request, "Spare part deleted successfully")
+
+    return redirect("sparepart_list")
+
+# Spare Part Inventory
+@role_required('employee:service','admin','director')
+def spare_inventory(request):
+
+    status = request.GET.get("status")
+    search_query = request.GET.get("q")
+    stocks = SparePartStock.objects.select_related("spare_part").all()
+
+    # Search Bar
+    if search_query:
+        stocks = stocks.filter(
+            Q(spare_part__part_name__icontains=search_query) |
+            Q(spare_part__part_number__icontains=search_query)
+        )
+
+    # Search Filter (Dropdown)
+    if status == "low":
+        stocks = stocks.filter(
+            current_quantity__lte=models.F("min_stock_level"),
+            current_quantity__gt=0
+        )
+
+    elif status == "out":
+        stocks = stocks.filter(current_quantity=0)
+
+    elif status == "ok":
+        stocks = stocks.filter(
+            current_quantity__gt=models.F("min_stock_level")
+        )
+
+    low_stocks = SparePartStock.objects.filter(
+        current_quantity__lte=models.F("min_stock_level")
+    )
+
+    context = {
+        "stocks": stocks,
+        "low_stocks": low_stocks,
+        "low_stock_count": low_stocks.count(),
+        "search_query":search_query,
+    }
+
+    return render(request,"services/admin/spare_inventory.html",context)
+
+# Update Inventory
+@role_required('employee:service','admin')
+def update_spare_inventory(request,id):
+
+    stock = get_object_or_404(SparePartStock,id=id)
+
+    if request.method == "POST":
+
+        new_shipment = int(request.POST.get("new_stock_shippment",0))
+
+        stock.new_stock_shipment = new_shipment
+        stock.location = request.POST.get("location")
+
+        stock.save()
+
+        messages.success(request,"Inventory updated successfully")
+
+    return redirect("spare_inventory")
+
+

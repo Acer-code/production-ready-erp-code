@@ -38,6 +38,8 @@ def user_login(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
+            selected_role = form.cleaned_data.get('role')
+            selected_sub_role = form.cleaned_data.get('sub_employee_role')
             user = authenticate(request, email=email, password=password)
             if user is None:
                 messages.error(request, 'Invalid Email or Password')
@@ -46,7 +48,18 @@ def user_login(request):
                 messages.error(request, "Your account is temporarily suspended.")
                 return redirect('login')
             if user is not None:
+
+                #ROLE VALIDATION BEFORE LOGIN
+                if user.role != selected_role:
+                    messages.error(request, "Invalid role selected.")
+                    return redirect('login')
+
+                if user.role == 'employee' and user.sub_employee_role != selected_sub_role:
+                    messages.error(request, "Invalid employee role selected.")
+                    return redirect('login')
+                
                 login(request, user)
+                
                 if user.role == 'admin':
                     return redirect('admin_dashboard')
                 elif user.role == 'dealer':

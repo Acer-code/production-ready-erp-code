@@ -1,8 +1,10 @@
 from django import forms
 from django.utils import timezone
-from .models import ServiceRequest
+from .models import ServiceRequest, SparePartStock
 from erp.models import OrderItem
 from accounts.models import Dealer
+from dal import autocomplete
+from .models import SparePart
 
 class ServiceRequestForm(forms.ModelForm):
 
@@ -21,6 +23,7 @@ class ServiceRequestForm(forms.ModelForm):
                 'max': timezone.now().date()
             }
         )
+        
     )
 
     class Meta:
@@ -42,6 +45,11 @@ class ServiceRequestForm(forms.ModelForm):
             'issue_image',
             'issue_video'
         ]
+        widgets = {
+            'spare_part': autocomplete.ModelSelect2(
+                url='spare-part-autocomplete'
+            )
+        }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
@@ -168,3 +176,18 @@ class ServiceRequestForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class SparePartForm(forms.ModelForm):
+
+    class Meta:
+        model = SparePart
+        fields = [
+            "part_name",
+            "part_number",
+            "price"
+        ]
+class SparePartStockForm(forms.ModelForm):
+    class Meta:
+        model = SparePartStock
+        fields = ['current_quantity', 'min_stock_level', 'new_stock_shipment', 'total_stock', 'location']

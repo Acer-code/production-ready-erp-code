@@ -217,15 +217,33 @@
                 <form method="POST" action="{% url 'request_spare_parts' service.id %}">
                   {% csrf_token %}
                   <div class="row g-2 mb-3">
-                    <div class="col-md-4">
+                    <!-- <div class="col-md-4">
                       <input type="text" id="part_name" class="form-control" placeholder="Part Name">
                     </div>
                     <div class="col-md-4">
                       <input type="text" id="part_number" class="form-control" placeholder="Part Number">
+                    </div>-->
+                    
+                    <div class="col-md-5">
+                      <select id="part_select" class="form-control form-select">
+                      <option value="">Select Spare Part</option>
+
+                      {% for part in spare_parts %}
+                          <option value="{{ part.id }}"
+                                  data-name="{{ part.part_name }}"
+                                  data-number="{{ part.part_number }}">
+                              {{ part.part_name }} ({{ part.part_number }})
+                          </option>
+                      {% endfor %}
+
+                      </select>
                     </div>
                     <div class="col-md-3">
+                      <input type="text" id="part_number" class="form-control"placeholder='Spare part no.'>
+                    </div> 
+                    <div class="col-md-3">
                       <input type="number" id="quantity" class="form-control" min="1" value="1">
-                    </div>
+                    </div> 
 
                     <div class="col-md-1">
                       <button type="button" class="mdc-button mdc-button--raised rounded mdc-ripple-upgraded w-100" onclick="addSpare()">Add</button>
@@ -272,16 +290,14 @@
                           <th>Status</th>
                           <th>Courier</th>
                           <th>Docket No</th>
-                          {% if is_admin or is_engineer or is_service %}
                           <th class="space">Action</th>
-                          {% endif %}
                         </tr>
                       </thead>
                       <tbody>
                         {% for spare in spare_requests %}
                           <tr>
                             <td>{{ spare.requested_by.get_full_name|title }} | <span>{{ spare.requested_by }}</span></td>
-                            <td>{{ spare.part_name }}</td>
+                            <td>{{ spare.spare_part.part_name }}</td>
                             <td>{% if spare.part_number %}{{ spare.part_number }}{% else %} — {% endif %}</td>
                             <td>{{ spare.quantity }}</td>
 
@@ -325,6 +341,7 @@
                                 {% else %}
                                 <td class="space">
                                   -
+                                </td>
                                 {% endif %}
                               {# ================= ENGINEER ACTION ================= #}
                               {% elif is_engineer and spare.status == 'dispatched' %}
@@ -657,7 +674,7 @@
 </div>
 
 <!-- ================= JS ================= -->
-
+<!-- 
 <script>
 function addSpare() {
   let name = document.getElementById('part_name').value;
@@ -682,6 +699,50 @@ function addSpare() {
   document.getElementById('part_name').value = '';
   document.getElementById('part_number').value = '';
   document.getElementById('quantity').value = 1;
+}
+</script> -->
+
+
+<script>
+function addSpare() {
+
+  let select = document.getElementById('part_select');
+
+  if (select.selectedIndex === 0) {
+      alert("Please select spare part");
+      return;
+  }
+
+  let selected = select.options[select.selectedIndex];
+
+  let name = selected.getAttribute("data-name");
+  let number = document.getElementById('part_number').value;
+
+  let qty = document.getElementById('quantity').value;
+
+  if (!qty || qty <= 0) {
+      alert("Please enter valid quantity");
+      return;
+  }
+
+  let row = `
+  <tr>
+    <td>${name}<input type="hidden" name="part_name" value="${name}"></td>
+    <td>${number}<input type="hidden" name="part_number" value="${number}"></td>
+    <td>${qty}<input type="hidden" name="quantity" value="${qty}"></td>
+    <td>
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">
+        <i class="fa fa-trash-o"></i>
+      </button>
+    </td>
+  </tr>`;
+
+  document.querySelector('#spareTable tbody').insertAdjacentHTML('beforeend', row);
+
+  // reset fields
+  $('#part_select').val(null).trigger('change');  // important for Select2
+  document.getElementById('quantity').value = 1;
+  document.getElementById('part_number').value = '';
 }
 </script>
 

@@ -134,8 +134,13 @@ class SparePartRequest(models.Model):
         limit_choices_to={'sub_employee_role': 'service'}
     )
 
-    part_name = models.CharField(max_length=255)
+    # part_name = models.CharField(max_length=255)
     part_number = models.CharField(max_length=100, blank=True, null=True)
+    spare_part = models.ForeignKey(
+        'SparePart',
+        on_delete=models.PROTECT,
+        related_name='requests', blank=True, null=True
+    )
     quantity = models.PositiveIntegerField()
 
     status = models.CharField(
@@ -229,7 +234,7 @@ class ServiceLog(models.Model):
 class ServiceClosure(models.Model):
     service_request = models.OneToOneField(ServiceRequest, on_delete=models.CASCADE, related_name='closure')
     resolution_summary = models.TextField()
-    engineer_remark = models.CharField(blank=True, null=True)
+    engineer_remark = models.CharField(max_length=150,blank=True, null=True)
     closed_by = models.ForeignKey(User, models.SET_NULL, null=True, related_name='closed_service')
     closed_at = models.DateTimeField(auto_now_add=True)
 
@@ -256,3 +261,94 @@ class ServiceFeedback(models.Model):
     comment = models.TextField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
+
+class JobCard(models.Model):
+
+    job_id = models.CharField(max_length=20, unique=True)
+
+    service_request = models.ForeignKey(
+        ServiceRequest,
+        on_delete=models.CASCADE
+    )
+
+    engineer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('open','Open'),
+            ('in_progress','In Progress'),
+            ('hold','Hold'),
+            ('completed','Completed')
+        ]
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    
+class SparePart(models.Model):
+
+    part_name = models.CharField(max_length=150)
+
+    part_number = models.CharField(
+        max_length=100,
+        unique=False
+    )
+
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.part_name} ({self.part_number})"
+    
+class SparePartStock(models.Model):
+
+    spare_part = models.OneToOneField(
+        SparePart,
+        on_delete=models.CASCADE
+    )
+
+    min_stock_level = models.PositiveIntegerField(default=5)
+
+    new_stock_shipment = models.PositiveIntegerField(default=0)
+
+    total_stock = models.PositiveIntegerField(default=0)
+
+    last_shipment_qty = models.PositiveIntegerField(default=0)
+
+    current_quantity = models.PositiveIntegerField(default=0)
+
+    location = models.CharField(
+        max_length=100,
+        default="ABM Warehouse"
+    )
+
+    def is_low_stock(self):
+        return self.current_quantity <= self.min_stock_level
+
+    def save(self, *args, **kwargs):
+
+        if self.pk:
+            self.total_stock = self.current_quantity + self.new_stock_shipment
+            self.current_quantity = self.total_stock
+            self.last_shipment_qty = self.new_stock_shipment
+        else:
+            self.total_stock = self.new_stock_shipment
+            self.current_quantity = self.total_stock
+            self.last_shipment_qty = self.new_stock_shipment
+
+        self.new_stock_shipment = 0
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.spare_part.part_name} - {self.current_quantity}"

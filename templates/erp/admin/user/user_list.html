@@ -127,7 +127,7 @@
                                             <span class="badge bg-secondary">Inactive</span>
                                             {% endif %}
                                         </td>
-                                        {% if request.user.role == 'admin' or director %}
+                                        {% if request.user.role == 'admin' or request.user.role == 'director' %}
 
                                         <td class="dropdown action">
                                             <button type="button" class="dropdown-toggle" id="action" data-bs-toggle="dropdown" aria-expanded="false">:</button>

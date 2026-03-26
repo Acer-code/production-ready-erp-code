@@ -1,0 +1,288 @@
+{% extends 'erp/admin/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="page-wrapper mdc-toolbar-fixed-adjust">
+
+  <main class="content-wrapper">
+    <div class="mdc-layout-grid">
+
+      <div class="d-flex justify-content-between mb-3">
+
+        <h4>Spare Parts Management</h4>
+
+        {% if request.user.role == 'admin' or request.user.sub_employee_role == 'service' %}
+        <button class="mdc-button mdc-button--raised" data-bs-toggle="modal" data-bs-target="#addSpareModal">
+
+          <i class="material-icons">add</i> Add Spare
+        </button>
+        {% endif %}
+
+      </div>
+      <!-- SEARCH + FILTER -->
+      <div class="row justify-content-between mb-3">
+
+      <div class="col-6">
+
+      <form method="get">
+
+      <div class="input-group">
+
+        <input type="text" name="q" class="form-control" placeholder="Search spare parts..."
+            value="{{ search_query|default_if_none:''}}">
+
+        <button type="submit" class="input-group-text bg-white">
+            <i class="fa fa-search"></i>
+        </button>
+
+      </div>
+
+      </form>
+
+      </div>
+
+      <div class="col-md-3">
+
+      <form method="get">
+
+      <select class="form-select form-control" name="status" onchange="this.form.submit()">
+
+        <option value="">All Stock</option>
+
+        <option value="low" {% if request.GET.status == 'low' %}selected{% endif %}>
+            Low Stock
+        </option>
+
+        <option value="out" {% if request.GET.status == 'out' %}selected{% endif %}>
+            Out of Stock
+        </option>
+
+        <option value="ok" {% if request.GET.status == 'ok' %}selected{% endif %}>
+            In Stock
+        </option>
+
+      </select>
+
+      </form>
+
+      </div>
+
+      </div>
+
+      <div class="mdc-card">
+
+        <div class="table-responsive">
+
+          <table class="table">
+
+            <thead>
+
+              <tr>
+                <th>#</th>
+                <th>Part Name</th>
+                <th>Part Number</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                {% if request.user.role == 'admin' or request.user.sub_employee_role == 'service' %}
+                <th>Actions</th>
+                {% endif %}
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {% for spare in spare_parts %}
+
+              <tr>
+
+                <td>{{spare.id}}</td>
+
+                <td>{{spare.part_name}}</td>
+
+                <td>{% if spare.part_number %}{{spare.part_number}}{% else %}-{% endif %}</td>
+
+                <td>₹ {{spare.price}}</td>
+
+                <td>{{spare.sparepartstock.current_quantity}}</td>
+
+                <td>
+
+                  {% if spare.sparepartstock.current_quantity > spare.sparepartstock.min_stock_level %}
+
+                  <span class="text-success">In Stock</span>
+
+                  {% elif spare.sparepartstock.current_quantity <= spare.sparepartstock.min_stock_level and spare.sparepartstock.current_quantity != 0 %} <span
+                    class="text-warning">Low Stock</span>
+
+                    {% else %}
+
+                    <span class="text-danger">Out of Stock</span>
+
+                    {% endif %}
+
+                </td>
+                {% if request.user.role == 'admin' or request.user.sub_employee_role == 'service' %}
+                <td>
+
+                  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editSpare{{spare.id}}">
+
+                    <i class="fa fa-pencil"></i>
+
+                  </button>
+
+                  <a href="{% url 'delete_spare_part' spare.id %}" class="btn btn-danger"
+                    onclick="return confirm('Are you sure, Delete spare part?')">
+
+                    <i class="fa fa-trash"></i>
+
+                  </a>
+
+                </td>
+                {% endif %}
+              </tr>
+
+
+             
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+ {% for spare in spare_parts %}
+ <!-- EDIT MODAL -->
+
+    <div class="modal fade" id="editSpare{{spare.id}}">
+
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h5>Edit Spare Part</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+
+            <form method="POST" action="{% url 'update_spare_part' spare.id %}">
+
+              {% csrf_token %}
+
+              <div class="mb-3">
+
+                <label>Part Name<span class="text-danger">*</span></label>
+
+                <input type="text" name="part_name" value="{{spare.part_name}}" class="form-control" required>
+
+              </div>
+
+              <div class="mb-3">
+
+                <label>Part Number</label>
+
+                <input type="text" name="part_number" value="{{spare.part_number}}" class="form-control">
+
+              </div>
+
+              <div class="mb-3">
+
+                <label>Price</label>
+
+                <input type="number" name="price" value="{{spare.price}}" class="form-control">
+
+              </div>
+
+              <div class="text-center">
+
+                <button class="btn btn-primary">
+                  Update
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+ {% endfor %}
+
+
+<!-- ADD MODAL -->
+
+<div class="modal fade" id="addSpareModal">
+
+  <div class="modal-dialog">
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <h5>Add Spare Part</h5>
+
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <form method="POST" action="{% url 'add_spare_part' %}">
+
+          {% csrf_token %}
+
+          <div class="mb-3">
+
+            <label>Part Name<span class="text-danger">*</span></label>
+
+            <input type="text" name="part_name" class="form-control" required>
+
+          </div>
+
+          <div class="mb-3">
+
+            <label>Part Number</label>
+
+            <input type="text" name="part_number" class="form-control">
+
+          </div>
+
+          <div class="mb-3">
+
+            <label>Price</label>
+
+            <input type="number" name="price" class="form-control">
+
+          </div>
+
+
+
+          <div class="text-center">
+
+            <button class="btn btn-success">
+              Submit
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

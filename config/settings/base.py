@@ -11,11 +11,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'accounts',
     'erp',
     'services',
     'notifications.apps.NotificationsConfig',
+    'dal',
+    'dal_select2',
 ]
 
 MIDDLEWARE = [

@@ -2,6 +2,32 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
 # Create your models here.
+from django.contrib.auth.base_user import BaseUserManager
+
+class UserManager(BaseUserManager):
+
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Email is required")
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', 'admin')
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self.create_user(email, password, **extra_fields)
+    
 class User(AbstractUser):
     ROLE_CHOICES =[
         ('admin','Admin'),
@@ -29,6 +55,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"             # LOGIN USING EMAIL
     REQUIRED_FIELDS = []                 # No username required
+    objects = UserManager()
 
     def save(self, *args, **kwargs):
         if not self.username:
@@ -46,7 +73,7 @@ class Dealer(models.Model):
     firm_name = models.CharField(max_length=255)
     gst_number = models.CharField(max_length=15, null=True, blank=True)
     pan_number = models.CharField(max_length=10, null=True, blank=True)
-    # 🔹 Billing Address
+    # Billing Address
     bill_address_line1 = models.CharField(max_length=255)
     bill_address_line2 = models.CharField(max_length=255, blank=True, null=True)
     bill_city = models.CharField(max_length=100)
@@ -54,7 +81,7 @@ class Dealer(models.Model):
     bill_pincode = models.CharField(max_length=6)
     bill_country = models.CharField(max_length=50, default='India')
 
-    # 🔹 Shipping Address
+    # Shipping Address
     ship_address_line1 = models.CharField(max_length=255)
     ship_address_line2 = models.CharField(max_length=255, blank=True, null=True)
     ship_city = models.CharField(max_length=100)

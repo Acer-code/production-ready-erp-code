@@ -216,7 +216,7 @@ def user_list(request):
     users = apply_filters(users, request, [
         'role',
         'sub_employee_role'
-    ])
+    ]).order_by('-id')
     create_user_form = CreateUserForm()
     page_obj = paginate_queryset(request, users, 10)
     return render(request,'erp/admin/user/user_list.html',{'users':page_obj,'create_user_form':create_user_form,'page_obj':page_obj})
@@ -298,7 +298,7 @@ def product_list(request):
         stocks = stocks.all()
 
     # map back to products
-    products = products.filter(id__in=stocks.values('product_id'))
+    products = products.filter(id__in=stocks.values('product_id')).order_by('-id')
     page_obj = paginate_queryset(request, products, 10)
     out_of_stock_products = Stock.objects.filter(current_quantity__lte=0).select_related('product')
     return render(request, 'erp/admin/product_list.html',{'products':page_obj, 'page_obj':page_obj,'out_of_stock_products':out_of_stock_products,'stock_status':stock_status})
@@ -308,7 +308,7 @@ def product_list(request):
 @role_required('admin', 'director','employee:sales','employee:inventory','employee:dispatch')
 def inventory_list(request):
     LOW_STOCK_LIMIT = 10
-    stocks = Stock.objects.select_related('product').all()
+    stocks = Stock.objects.select_related('product').all().order_by('-id')
     low_stocks = Stock.objects.select_related('product').filter(current_quantity__lte=LOW_STOCK_LIMIT)
 
     # status filter
@@ -711,7 +711,7 @@ def order_list(request):
      # status filter
     status = request.GET.get('status')
     if status:
-        orders = orders.filter(status=status)
+        orders = orders.filter(status=status).order_by('-order_date')
 
     page_obj = paginate_queryset(request, orders, 10)
 

@@ -1,11 +1,12 @@
 from django.urls import path
 from .views import (
-    approve_reject_service, order_item_api, service_dashboard, service_list,service_detail,assign_service_engineer, change_service_status, close_service,
+    approve_reject_service, delete_spare_part, order_item_api, service_dashboard, service_list,service_detail,assign_service_engineer, change_service_status, close_service,
     raise_service_request,engineer_dashboard,
     # remove_spare_part,update_spare_part_status,add_spare_parts, 
     request_spare_parts,
-    dispatch_spare_part,receive_spare_part,submit_spare_return,approve_spare_return,order_item_api
+    dispatch_spare_part,receive_spare_part, spare_inventory, sparepart_list,submit_spare_return,approve_spare_return,order_item_api,add_spare_part, update_spare_inventory, update_spare_part
 )
+from .autocomplete import SparePartAutocomplete
 
 urlpatterns =[
     path('engineer/dashboard',engineer_dashboard,name='engineer_dashboard'),
@@ -41,6 +42,16 @@ urlpatterns =[
 
     path('spare/return/<int:return_id>/approve/', approve_spare_return, name='approve_spare_return'),
     path('service/<int:pk>/approve-reject/', approve_reject_service, name='approve_reject_service'),
+        path("spare-parts/", sparepart_list, name="sparepart_list"),
 
+    path("spare-parts/add/",add_spare_part, name="add_spare_part"),
 
+    path("spare-parts/update/<int:id>/", update_spare_part, name="update_spare_part"),
+
+    path("spare-parts/delete/<int:id>/", delete_spare_part, name="delete_spare_part"),
+    path("spare-inventory/",spare_inventory,name="spare_inventory"),
+
+    path("update-spare-inventory/<int:id>/",update_spare_inventory,name="update_spare_inventory_stock"),
+
+    path('spare-part-autocomplete/',SparePartAutocomplete.as_view(),name='spare-part-autocomplete'),
 ]
