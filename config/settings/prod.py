@@ -15,8 +15,8 @@ ALLOWED_HOSTS = ['*']
 #         'NAME': os.environ['DB_NAME'],
 #         'USER': os.environ['DB_USER'],
 #         'PASSWORD': os.environ['DB_PASSWORD'],
-#         'HOST': 'localhost',
-#         'PORT': '5432',
+#         'HOST': 'AccureMedicalPvtLtd-4883.postgres.pythonanywhere-services.com',
+#         'PORT': '14883',
 #     }
 # }
 
